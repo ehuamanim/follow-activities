@@ -20,10 +20,10 @@ export class DashboardComponent implements OnInit {
   loading = false;
   errorMessage = '';
 
-  barChartOptions: ChartConfiguration['options'] = {
+  barChartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
-    plugins: { legend: { display: false } }
-  };
+    plugins: { legend: { display: false } },
+  } as ChartConfiguration<'bar'>['options'] & { maxHeight: number };
 
   teamChartData: ChartData<'bar'> = { labels: [], datasets: [{ data: [], backgroundColor: '#3b82f6' }] };
   projectChartData: ChartData<'bar'> = { labels: [], datasets: [{ data: [], backgroundColor: '#10b981' }] };
@@ -43,6 +43,7 @@ export class DashboardComponent implements OnInit {
       role: this.dashboardService.getHoursByRole(this.period)
     }).subscribe({
       next: ({ team, project, role }) => {
+
         this.teamChartData = this.toChartData(team, '#3b82f6');
         this.projectChartData = this.toChartData(project, '#10b981');
         this.roleChartData = this.toChartData(role, '#f59e0b');
