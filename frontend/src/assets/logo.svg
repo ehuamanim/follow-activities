@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50" width="160" height="40">
+  <rect x="0" y="5" width="40" height="40" rx="8" fill="#2563EB"/>
+  <text x="20" y="32" font-family="Arial,sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle">FA</text>
+  <text x="52" y="33" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#2563EB">Follow</text>
+  <text x="105" y="33" font-family="Arial,sans-serif" font-size="17" font-weight="normal" fill="#374151">Activities</text>
+</svg>

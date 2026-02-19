@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Project } from '../../shared/models';
+import { Project, TeamReportEntry } from '../../shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
@@ -37,5 +37,13 @@ export class ProjectService {
     return this.http.delete<void>(`${this.apiUrl}/projects/${id}`).pipe(
       catchError(err => throwError(() => err))
     );
+  }
+
+  getTeamReport(projectId: number, month: number, year: number): Observable<TeamReportEntry[]> {
+    return this.http
+      .get<TeamReportEntry[]>(
+        `${this.apiUrl}/projects/${projectId}/team-report?month=${month}&year=${year}`
+      )
+      .pipe(catchError(err => throwError(() => err)));
   }
 }
