@@ -32,6 +32,14 @@ export interface Activity {
   project?: Project;
 }
 
+export interface TeamReportEntry {
+  id: number;
+  name: string;
+  surnames: string;
+  role: string;
+  total_hours: number;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;

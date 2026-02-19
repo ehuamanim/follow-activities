@@ -1,13 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ProjectService } from '../../core/services/project.service';
 import { Project } from '../../shared/models';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './project-list.component.html'
 })
 export class ProjectListComponent implements OnInit {

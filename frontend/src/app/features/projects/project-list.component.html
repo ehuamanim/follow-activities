@@ -74,6 +74,7 @@
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
@@ -93,9 +94,15 @@
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ project.created_at | date:'short' }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <a
+              [routerLink]="['/projects', project.id, 'team-report']"
+              class="text-blue-600 hover:underline font-medium"
+            >Team Report</a>
+          </td>
         </tr>
         <tr *ngIf="projects.length === 0">
-          <td colspan="4" class="px-6 py-10 text-center text-gray-500">No projects found.</td>
+          <td colspan="5" class="px-6 py-10 text-center text-gray-500">No projects found.</td>
         </tr>
       </tbody>
     </table>
