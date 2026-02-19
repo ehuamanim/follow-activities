@@ -1,0 +1,47 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Activities</h1>
+    <button
+      (click)="navigateToCreate()"
+      class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition"
+    >
+      + New Activity
+    </button>
+  </div>
+
+  <div *ngIf="errorMessage" class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center py-10">
+    <span class="text-gray-500">Loading activities...</span>
+  </div>
+
+  <div *ngIf="!loading" class="overflow-x-auto bg-white rounded-lg shadow">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tasks</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let activity of activities" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+            {{ activity.project?.name || activity.project_id }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ activity.hours }}</td>
+          <td class="px-6 py-4 text-sm text-gray-800">{{ activity.tasks }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ activity.created_at | date:'short' }}
+          </td>
+        </tr>
+        <tr *ngIf="activities.length === 0">
+          <td colspan="4" class="px-6 py-10 text-center text-gray-500">No activities found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

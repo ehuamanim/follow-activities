@@ -1,0 +1,87 @@
+<div class="min-h-screen bg-gray-100 flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Create Account</h1>
+
+    <div *ngIf="errorMessage" class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="mb-4">
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="John"
+        />
+        <p *ngIf="form.get('name')?.touched && form.get('name')?.hasError('required')" class="text-red-500 text-xs mt-1">Name is required.</p>
+      </div>
+
+      <div class="mb-4">
+        <label for="surnames" class="block text-sm font-medium text-gray-700 mb-1">Surnames</label>
+        <input
+          id="surnames"
+          type="text"
+          formControlName="surnames"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Doe"
+        />
+        <p *ngIf="form.get('surnames')?.touched && form.get('surnames')?.hasError('required')" class="text-red-500 text-xs mt-1">Surnames are required.</p>
+      </div>
+
+      <div class="mb-4">
+        <label for="reg-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input
+          id="reg-email"
+          type="email"
+          formControlName="email"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="you@example.com"
+        />
+        <p *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')" class="text-red-500 text-xs mt-1">Email is required.</p>
+        <p *ngIf="form.get('email')?.touched && form.get('email')?.hasError('email')" class="text-red-500 text-xs mt-1">Please enter a valid email.</p>
+      </div>
+
+      <div class="mb-6">
+        <label for="reg-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <input
+          id="reg-password"
+          type="password"
+          formControlName="password"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Min. 6 characters"
+        />
+        <p *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')" class="text-red-500 text-xs mt-1">Password is required.</p>
+        <p *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')" class="text-red-500 text-xs mt-1">Password must be at least 6 characters.</p>
+      </div>
+
+      <div *ngIf="roles.length > 0" class="mb-6">
+        <p class="block text-sm font-medium text-gray-700 mb-2">Roles</p>
+        <div *ngFor="let role of roles" class="flex items-center mb-1">
+          <input
+            type="checkbox"
+            [id]="'role-' + role.id"
+            (change)="onRoleChange($event, role.id)"
+            class="mr-2"
+          />
+          <label [for]="'role-' + role.id" class="text-sm text-gray-700">{{ role.name }}</label>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="loading"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition disabled:opacity-50"
+      >
+        {{ loading ? 'Registering...' : 'Register' }}
+      </button>
+    </form>
+
+    <p class="mt-4 text-center text-sm text-gray-600">
+      Already have an account?
+      <a routerLink="/login" class="text-blue-600 hover:underline">Sign in</a>
+    </p>
+  </div>
+</div>

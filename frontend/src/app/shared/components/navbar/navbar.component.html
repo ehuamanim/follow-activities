@@ -1,0 +1,37 @@
+<nav class="bg-white shadow-sm border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16 items-center">
+      <div class="flex items-center gap-8">
+        <span class="text-lg font-bold text-blue-600">Follow Activities</span>
+        <div class="flex gap-4">
+          <a
+            routerLink="/dashboard"
+            routerLinkActive="text-blue-600 font-semibold"
+            class="text-gray-600 hover:text-blue-600 text-sm transition"
+          >Dashboard</a>
+          <a
+            routerLink="/activities"
+            routerLinkActive="text-blue-600 font-semibold"
+            class="text-gray-600 hover:text-blue-600 text-sm transition"
+          >Activities</a>
+          <a
+            routerLink="/projects"
+            routerLinkActive="text-blue-600 font-semibold"
+            class="text-gray-600 hover:text-blue-600 text-sm transition"
+          >Projects</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <span *ngIf="currentUser" class="text-sm text-gray-600">
+          {{ currentUser.name }} {{ currentUser.surnames }}
+        </span>
+        <button
+          (click)="logout()"
+          class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md transition"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
