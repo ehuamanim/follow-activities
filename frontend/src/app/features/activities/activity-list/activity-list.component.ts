@@ -1,13 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { ActivityService } from '../../../core/services/activity.service';
 import { Activity } from '../../../shared/models';
 
 @Component({
   selector: 'app-activity-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './activity-list.component.html'
 })
 export class ActivityListComponent implements OnInit {

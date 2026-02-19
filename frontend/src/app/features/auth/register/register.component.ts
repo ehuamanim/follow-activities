@@ -23,7 +23,7 @@ export class RegisterComponent implements OnInit {
     surnames: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    role_ids: [[]]
+    role_ids: [[] as number[]]
   });
 
   roles: Role[] = [];
