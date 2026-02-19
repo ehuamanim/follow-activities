@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { forkJoin } from 'rxjs';
-import { DashboardService } from '../../../core/services/dashboard.service';
-import { DashboardData } from '../../../shared/models';
+import { DashboardService } from '../../core/services/dashboard.service';
+import { DashboardData } from '../../shared/models';
 
 @Component({
   selector: 'app-dashboard',

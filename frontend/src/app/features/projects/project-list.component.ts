@@ -1,8 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ProjectService } from '../../../core/services/project.service';
-import { Project } from '../../../shared/models';
+import { ProjectService } from '../../core/services/project.service';
+import { Project } from '../../shared/models';
 
 @Component({
   selector: 'app-project-list',
