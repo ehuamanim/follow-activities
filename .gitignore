@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+out-tsc/
+
+# Environment files
+.env
+backend/.env
+
+# Angular cache
+.angular/
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*

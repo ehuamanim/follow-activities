@@ -1,0 +1,54 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+    <div class="flex items-center gap-3">
+      <label for="period" class="text-sm font-medium text-gray-700">Period:</label>
+      <select
+        id="period"
+        [(ngModel)]="period"
+        (ngModelChange)="onPeriodChange()"
+        class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center py-10">
+    <span class="text-gray-500">Loading dashboard...</span>
+  </div>
+
+  <div *ngIf="!loading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Hours by Team Member</h2>
+      <canvas baseChart
+        [data]="teamChartData"
+        [options]="barChartOptions"
+        type="bar">
+      </canvas>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Hours by Project</h2>
+      <canvas baseChart
+        [data]="projectChartData"
+        [options]="barChartOptions"
+        type="bar">
+      </canvas>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Hours by Role</h2>
+      <canvas baseChart
+        [data]="roleChartData"
+        [options]="barChartOptions"
+        type="bar">
+      </canvas>
+    </div>
+  </div>
+</div>
