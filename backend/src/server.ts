@@ -10,6 +10,7 @@ import userRoutes from './routes/userRoutes';
 import projectRoutes from './routes/projectRoutes';
 import activityRoutes from './routes/activityRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import roleRoutes from './routes/roleRoutes';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -47,6 +48,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/roles', roleRoutes);
 
 // 404 handler
 app.use((_req, res) => {

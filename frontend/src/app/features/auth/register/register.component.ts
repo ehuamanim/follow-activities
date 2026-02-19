@@ -31,7 +31,10 @@ export class RegisterComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
-    // Optionally load available roles from API
+    this.userService.getRoles().subscribe({
+      next: (roles) => { this.roles = roles; },
+      error: () => { /* roles remain empty, user can still register without selecting roles */ }
+    });
   }
 
   onRoleChange(event: Event, roleId: number): void {

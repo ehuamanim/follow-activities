@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { User, RegisterRequest } from '../../shared/models';
+import { Role, User, RegisterRequest } from '../../shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -35,6 +35,12 @@ export class UserService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/users/${id}`).pipe(
+      catchError(err => throwError(() => err))
+    );
+  }
+
+  getRoles(): Observable<Role[]> {
+    return this.http.get<Role[]>(`${this.apiUrl}/roles`).pipe(
       catchError(err => throwError(() => err))
     );
   }
