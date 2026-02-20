@@ -8,6 +8,7 @@ import { ActivityListComponent } from './features/activities/activity-list/activ
 import { ActivityFormComponent } from './features/activities/activity-form/activity-form.component';
 import { ProjectListComponent } from './features/projects/project-list.component';
 import { TeamReportComponent } from './features/projects/team-report/team-report.component';
+import { ActivitiesReportComponent } from './features/reports/activities-report/activities-report.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -22,7 +23,8 @@ export const routes: Routes = [
       { path: 'activities', component: ActivityListComponent },
       { path: 'activities/new', component: ActivityFormComponent },
       { path: 'projects', component: ProjectListComponent },
-      { path: 'projects/:id/team-report', component: TeamReportComponent }
+      { path: 'projects/:id/team-report', component: TeamReportComponent },
+      { path: 'reports/activities', component: ActivitiesReportComponent }
     ]
   },
   { path: '**', redirectTo: '/dashboard' }

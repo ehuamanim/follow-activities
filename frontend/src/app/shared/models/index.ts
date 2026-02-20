@@ -40,6 +40,17 @@ export interface TeamReportEntry {
   total_hours: number;
 }
 
+export interface ProjectActivitiesReportEntry {
+  project_name: string;
+  user_id: number;
+  name: string;
+  surnames: string;
+  role: string;
+  month: number;
+  year: number;
+  total_hours: number;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
