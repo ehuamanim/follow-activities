@@ -33,6 +33,65 @@ export const createProject = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
+export const getActivitiesReport = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projectId = parseInt(req.params.id, 10);
+    const userId = req.query['user_id'] ? parseInt(req.query['user_id'] as string, 10) : null;
+
+    if (isNaN(projectId)) {
+      res.status(400).json({ message: 'Invalid project id' });
+      return;
+    }
+
+    const params: (number)[] = [projectId];
+    let userFilter = '';
+
+    if (userId !== null && !isNaN(userId)) {
+      params.push(userId);
+      userFilter = `AND a.user_id = $2`;
+    }
+
+    const result = await pool.query(
+      `WITH role_agg AS (
+         SELECT ur.user_id,
+                COALESCE(STRING_AGG(r.name, ', ' ORDER BY r.name), 'No role') AS role
+         FROM user_roles ur
+         JOIN roles r ON r.id = ur.role_id
+         GROUP BY ur.user_id
+       ),
+       hours_by_month AS (
+         SELECT a.user_id,
+                EXTRACT(MONTH FROM a.created_at)::int AS month,
+                EXTRACT(YEAR FROM a.created_at)::int AS year,
+                SUM(a.hours) AS total_hours
+         FROM activities a
+         WHERE a.project_id = $1 ${userFilter}
+         GROUP BY a.user_id,
+                  EXTRACT(MONTH FROM a.created_at),
+                  EXTRACT(YEAR FROM a.created_at)
+       )
+       SELECT p.name AS project_name,
+              u.id AS user_id,
+              u.name,
+              u.surnames,
+              COALESCE(ra.role, 'No role') AS role,
+              hm.month,
+              hm.year,
+              hm.total_hours
+       FROM hours_by_month hm
+       JOIN users u ON u.id = hm.user_id
+       JOIN projects p ON p.id = $1
+       LEFT JOIN role_agg ra ON ra.user_id = u.id
+       ORDER BY hm.year, hm.month, u.surnames, u.name`,
+      params
+    );
+
+    res.json(result.rows);
+  } catch {
+    res.status(500).json({ message: 'Failed to fetch activities report' });
+  }
+};
+
 export const getProjectTeamReport = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const projectId = parseInt(req.params.id, 10);

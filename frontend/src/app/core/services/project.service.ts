@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Project, TeamReportEntry } from '../../shared/models';
+import { Project, TeamReportEntry, ProjectActivitiesReportEntry } from '../../shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
@@ -43,6 +43,15 @@ export class ProjectService {
     return this.http
       .get<TeamReportEntry[]>(
         `${this.apiUrl}/projects/${projectId}/team-report?month=${month}&year=${year}`
+      )
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  getActivitiesReport(projectId: number, userId?: number): Observable<ProjectActivitiesReportEntry[]> {
+    const params = userId ? `?user_id=${userId}` : '';
+    return this.http
+      .get<ProjectActivitiesReportEntry[]>(
+        `${this.apiUrl}/projects/${projectId}/activities-report${params}`
       )
       .pipe(catchError(err => throwError(() => err)));
   }
