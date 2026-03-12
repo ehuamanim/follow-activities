@@ -4,6 +4,7 @@ export interface Activity {
   project_id: number;
   hours: number;
   tasks: string;
+  activity_date: string;
   created_at: Date;
 }
 
@@ -12,4 +13,5 @@ export interface CreateActivityDTO {
   project_id: number;
   hours: number;
   tasks: string;
+  activity_date?: string;
 }

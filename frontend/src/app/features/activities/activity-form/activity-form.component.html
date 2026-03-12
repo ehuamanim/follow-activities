@@ -27,6 +27,17 @@
     </div>
 
     <div>
+      <label for="activity_date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+      <input
+        id="activity_date"
+        type="date"
+        formControlName="activity_date"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <p *ngIf="form.get('activity_date')?.touched && form.get('activity_date')?.hasError('required')" class="text-red-500 text-xs mt-1">Date is required.</p>
+    </div>
+
+    <div>
       <label for="hours" class="block text-sm font-medium text-gray-700 mb-1">Hours</label>
       <input
         id="hours"

@@ -8,6 +8,7 @@ export const createActivityValidation = [
   body('project_id').isInt({ min: 1 }).withMessage('Valid project_id is required'),
   body('hours').isFloat({ min: 0.1 }).withMessage('Hours must be a positive number'),
   body('tasks').notEmpty().withMessage('Tasks description is required'),
+  body('activity_date').optional().isDate().withMessage('activity_date must be a valid date (YYYY-MM-DD)'),
   validate,
 ];
 
@@ -23,18 +24,28 @@ export const getActivities = async (req: AuthRequest, res: Response): Promise<vo
 
     const isOperator = currentProfile === 'Operator';
     const query = isOperator
-      ? `SELECT a.*, u.name AS user_name, u.email AS user_email, p.name AS project_name
+      ? `SELECT a.id, a.user_id, a.project_id, a.hours, a.tasks, a.activity_date, a.created_at,
+                u.name AS user_name, u.email AS user_email, p.name AS project_name,
+                STRING_AGG(DISTINCT r.name, ', ' ORDER BY r.name) AS role_names
          FROM activities a
          JOIN users u ON u.id = a.user_id
          JOIN projects p ON p.id = a.project_id
-        WHERE a.user_id = $1 AND u.status = 'A'
-         ORDER BY a.created_at DESC`
-      : `SELECT a.*, u.name AS user_name, u.email AS user_email, p.name AS project_name
+         LEFT JOIN user_roles ur ON ur.user_id = a.user_id
+         LEFT JOIN roles r ON r.id = ur.role_id
+         WHERE a.user_id = $1 AND u.status = 'A'
+         GROUP BY a.id, u.name, u.email, p.name
+         ORDER BY a.activity_date DESC, p.name`
+      : `SELECT a.id, a.user_id, a.project_id, a.hours, a.tasks, a.activity_date, a.created_at,
+                u.name AS user_name, u.email AS user_email, p.name AS project_name,
+                STRING_AGG(DISTINCT r.name, ', ' ORDER BY r.name) AS role_names
          FROM activities a
          JOIN users u ON u.id = a.user_id
          JOIN projects p ON p.id = a.project_id
-        WHERE u.status = 'A'
-         ORDER BY a.created_at DESC`;
+         LEFT JOIN user_roles ur ON ur.user_id = a.user_id
+         LEFT JOIN roles r ON r.id = ur.role_id
+         WHERE u.status = 'A'
+         GROUP BY a.id, u.name, u.email, p.name
+         ORDER BY a.activity_date DESC, p.name`;
 
     const result = await pool.query(
       query,
@@ -54,11 +65,12 @@ export const createActivity = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    const { project_id, hours, tasks } = req.body;
+    const { project_id, hours, tasks, activity_date } = req.body;
+    const date = activity_date || new Date().toISOString().split('T')[0];
 
     const result = await pool.query(
-      'INSERT INTO activities (user_id, project_id, hours, tasks) VALUES ($1, $2, $3, $4) RETURNING *',
-      [userId, project_id, hours, tasks]
+      'INSERT INTO activities (user_id, project_id, hours, tasks, activity_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [userId, project_id, hours, tasks, date]
     );
     res.status(201).json(result.rows[0]);
   } catch {

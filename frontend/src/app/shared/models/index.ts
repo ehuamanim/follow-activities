@@ -30,7 +30,12 @@ export interface Activity {
   project_id: number;
   hours: number;
   tasks: string;
+  activity_date?: string;
   created_at?: string;
+  user_name?: string;
+  user_email?: string;
+  project_name?: string;
+  role_names?: string;
   user?: User;
   project?: Project;
 }

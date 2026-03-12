@@ -20,6 +20,7 @@ export class ActivityFormComponent implements OnInit {
 
   form = this.fb.group({
     project_id: ['', Validators.required],
+    activity_date: [new Date().toISOString().split('T')[0], Validators.required],
     hours: [null as number | null, [Validators.required, Validators.min(0.5)]],
     tasks: ['', Validators.required]
   });
@@ -34,6 +35,9 @@ export class ActivityFormComponent implements OnInit {
     this.projectService.getAll().subscribe({
       next: (data) => {
         this.projects = data;
+        if (data.length === 1) {
+          this.form.patchValue({ project_id: String(data[0].id) });
+        }
         this.loading = false;
       },
       error: () => {
@@ -49,9 +53,10 @@ export class ActivityFormComponent implements OnInit {
     this.submitting = true;
     this.errorMessage = '';
 
-    const { project_id, hours, tasks } = this.form.value;
+    const { project_id, activity_date, hours, tasks } = this.form.value;
     this.activityService.create({
       project_id: Number(project_id),
+      activity_date: activity_date!,
       hours: hours!,
       tasks: tasks!
     }).subscribe({
