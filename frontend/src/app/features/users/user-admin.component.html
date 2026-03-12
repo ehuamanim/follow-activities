@@ -1,0 +1,127 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">User Administration</h1>
+    <a
+      routerLink="/users/new"
+      class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition"
+    >
+      + Create User
+    </a>
+  </div>
+
+  <div *ngIf="errorMessage" class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="successMessage" class="bg-green-50 border border-green-300 text-green-700 px-4 py-3 rounded mb-4">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center py-10">
+    <span class="text-gray-500">Loading users...</span>
+  </div>
+
+  <div *ngIf="!loading" class="overflow-x-auto bg-white rounded-lg shadow">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profile</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let user of users" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ user.name }} {{ user.surnames }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ user.email }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ user.profile }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
+            <button
+              (click)="startEdit(user)"
+              class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded"
+            >
+              Edit
+            </button>
+            <button
+              (click)="openPasswordDialog(user.id)"
+              class="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-3 py-1 rounded"
+            >
+              Change Password
+            </button>
+            <button
+              (click)="deleteUser(user.id)"
+              class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="users.length === 0">
+          <td colspan="4" class="px-6 py-10 text-center text-gray-500">No users found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="editingUserId !== null" class="bg-white rounded-lg shadow p-6 mt-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">Edit User</h2>
+
+    <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="space-y-4" novalidate>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+        <input formControlName="name" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Surnames</label>
+        <input formControlName="surnames" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input formControlName="email" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Profile</label>
+        <select formControlName="profile" class="w-full border border-gray-300 rounded-md px-3 py-2">
+          <option *ngFor="let profile of profiles" [value]="profile">{{ profile }}</option>
+        </select>
+      </div>
+      <div>
+        <p class="block text-sm font-medium text-gray-700 mb-2">Project Roles</p>
+        <div class="grid grid-cols-2 gap-2">
+          <label *ngFor="let role of roles" class="inline-flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              [checked]="hasRole(role.id)"
+              (change)="onEditRoleChange($event, role.id)"
+            />
+            {{ role.name }}
+          </label>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md">Save</button>
+        <button type="button" (click)="cancelEdit()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-md">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="passwordUserId !== null" class="bg-white rounded-lg shadow p-6 mt-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">Change User Password</h2>
+
+    <form [formGroup]="passwordForm" (ngSubmit)="savePassword()" class="space-y-4" novalidate>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+        <input type="password" formControlName="password" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+        <input type="password" formControlName="confirmPassword" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+      </div>
+      <div class="flex gap-3">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md">Save Password</button>
+        <button type="button" (click)="cancelPasswordDialog()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-md">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

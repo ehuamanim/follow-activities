@@ -1,87 +1,107 @@
-<div class="min-h-screen bg-gray-100 flex items-center justify-center">
-  <div class="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Create Account</h1>
+<div class="flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
+    <h1 class="text-xl font-bold text-gray-800 mb-4 text-center">Create User</h1>
 
-    <div *ngIf="errorMessage" class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
+    <div *ngIf="errorMessage" class="bg-red-50 border border-red-300 text-red-700 px-3 py-2 rounded mb-3 text-sm">
       {{ errorMessage }}
     </div>
 
+    <div *ngIf="successMessage" class="bg-green-50 border border-green-300 text-green-700 px-3 py-2 rounded mb-3 text-sm">
+      {{ successMessage }}
+    </div>
+
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <div class="mb-4">
-        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+      <div class="mb-3">
+        <label for="name" class="block text-xs font-medium text-gray-700 mb-0.5">Name</label>
         <input
           id="name"
           type="text"
           formControlName="name"
-          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="John"
         />
-        <p *ngIf="form.get('name')?.touched && form.get('name')?.hasError('required')" class="text-red-500 text-xs mt-1">Name is required.</p>
+        <p *ngIf="form.get('name')?.touched && form.get('name')?.hasError('required')" class="text-red-500 text-xs mt-0.5">Name is required.</p>
       </div>
 
-      <div class="mb-4">
-        <label for="surnames" class="block text-sm font-medium text-gray-700 mb-1">Surnames</label>
+      <div class="mb-3">
+        <label for="surnames" class="block text-xs font-medium text-gray-700 mb-0.5">Surnames</label>
         <input
           id="surnames"
           type="text"
           formControlName="surnames"
-          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Doe"
         />
-        <p *ngIf="form.get('surnames')?.touched && form.get('surnames')?.hasError('required')" class="text-red-500 text-xs mt-1">Surnames are required.</p>
+        <p *ngIf="form.get('surnames')?.touched && form.get('surnames')?.hasError('required')" class="text-red-500 text-xs mt-0.5">Surnames are required.</p>
       </div>
 
-      <div class="mb-4">
-        <label for="reg-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+      <div class="mb-3">
+        <label for="reg-email" class="block text-xs font-medium text-gray-700 mb-0.5">Email</label>
         <input
           id="reg-email"
           type="email"
           formControlName="email"
-          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="you@example.com"
         />
-        <p *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')" class="text-red-500 text-xs mt-1">Email is required.</p>
-        <p *ngIf="form.get('email')?.touched && form.get('email')?.hasError('email')" class="text-red-500 text-xs mt-1">Please enter a valid email.</p>
+        <p *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')" class="text-red-500 text-xs mt-0.5">Email is required.</p>
+        <p *ngIf="form.get('email')?.touched && form.get('email')?.hasError('email')" class="text-red-500 text-xs mt-0.5">Please enter a valid email.</p>
       </div>
 
-      <div class="mb-6">
-        <label for="reg-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+      <div class="mb-3">
+        <label for="reg-password" class="block text-xs font-medium text-gray-700 mb-0.5">Password</label>
         <input
           id="reg-password"
           type="password"
           formControlName="password"
-          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Min. 6 characters"
         />
-        <p *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')" class="text-red-500 text-xs mt-1">Password is required.</p>
-        <p *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')" class="text-red-500 text-xs mt-1">Password must be at least 6 characters.</p>
+        <p *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')" class="text-red-500 text-xs mt-0.5">Password is required.</p>
+        <p *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')" class="text-red-500 text-xs mt-0.5">Password must be at least 6 characters.</p>
       </div>
 
-      <div *ngIf="roles.length > 0" class="mb-6">
-        <p class="block text-sm font-medium text-gray-700 mb-2">Roles</p>
-        <div *ngFor="let role of roles" class="flex items-center mb-1">
-          <input
-            type="checkbox"
-            [id]="'role-' + role.id"
-            (change)="onRoleChange($event, role.id)"
-            class="mr-2"
-          />
-          <label [for]="'role-' + role.id" class="text-sm text-gray-700">{{ role.name }}</label>
+      <!-- Profile (Application) -->
+      <div class="mb-3">
+        <label for="profile" class="block text-xs font-medium text-gray-700 mb-0.5">Profile</label>
+        <select
+          id="profile"
+          formControlName="profile"
+          class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option *ngFor="let profile of profiles" [value]="profile">{{ profile }}</option>
+        </select>
+      </div>
+
+      <!-- Roles (Project) -->
+      <div class="mb-4">
+        <p class="block text-xs font-medium text-gray-700 mb-1">Project Roles</p>
+        <div *ngIf="roles.length > 0" class="space-y-1">
+          <div *ngFor="let role of roles" class="flex items-center">
+            <input
+              type="checkbox"
+              [id]="'role-' + role.id"
+              (change)="onRoleChange($event, role.id)"
+              class="w-3 h-3 rounded"
+            />
+            <label [for]="'role-' + role.id" class="ml-1.5 text-xs text-gray-700">{{ role.name }}</label>
+          </div>
         </div>
+        <p *ngIf="roles.length === 0" class="text-xs text-gray-500 italic">Loading roles...</p>
       </div>
 
       <button
         type="submit"
         [disabled]="loading"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition disabled:opacity-50"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 text-sm rounded-md transition disabled:opacity-50"
       >
-        {{ loading ? 'Registering...' : 'Register' }}
+        {{ loading ? 'Creating...' : 'Create User' }}
       </button>
     </form>
 
-    <p class="mt-4 text-center text-sm text-gray-600">
-      Already have an account?
-      <a routerLink="/login" class="text-blue-600 hover:underline">Sign in</a>
+    <p class="mt-3 text-center text-xs text-gray-600">
+      Back to
+      <a routerLink="/dashboard" class="text-blue-600 hover:underline">Dashboard</a>
     </p>
   </div>
 </div>

@@ -4,6 +4,14 @@ import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Role, User, RegisterRequest } from '../../shared/models';
 
+export interface UpdateUserRequest {
+  name?: string;
+  surnames?: string;
+  email?: string;
+  profile?: 'Operator' | 'Administrator';
+  role_ids?: number[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private http = inject(HttpClient);
@@ -21,14 +29,26 @@ export class UserService {
     );
   }
 
-  create(data: RegisterRequest): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/users`, data).pipe(
+  create(data: RegisterRequest): Observable<{ user: User }> {
+    return this.http.post<{ user: User }>(`${this.apiUrl}/users`, data).pipe(
       catchError(err => throwError(() => err))
     );
   }
 
-  update(id: number, data: Partial<User>): Observable<User> {
+  assignRoles(userId: number, roleIds: number[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/users/${userId}/roles`, { role_ids: roleIds }).pipe(
+      catchError(err => throwError(() => err))
+    );
+  }
+
+  update(id: number, data: UpdateUserRequest): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/users/${id}`, data).pipe(
+      catchError(err => throwError(() => err))
+    );
+  }
+
+  changePassword(id: number, password: string): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/users/${id}/password`, { password }).pipe(
       catchError(err => throwError(() => err))
     );
   }

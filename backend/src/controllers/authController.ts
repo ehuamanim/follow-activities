@@ -6,6 +6,7 @@ import { registerUser, loginUser } from '../services/authService';
 export const registerValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('profile').isIn(['Operator', 'Administrator']).withMessage('Profile must be Operator or Administrator'),
   body('name').optional().isString(),
   body('surnames').optional().isString(),
   validate,

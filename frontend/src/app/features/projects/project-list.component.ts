@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProjectService } from '../../core/services/project.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Project } from '../../shared/models';
 
 @Component({
@@ -14,6 +15,7 @@ import { Project } from '../../shared/models';
 export class ProjectListComponent implements OnInit {
   private fb = inject(FormBuilder);
   private projectService = inject(ProjectService);
+  private authService = inject(AuthService);
 
   projects: Project[] = [];
   loading = false;
@@ -31,6 +33,10 @@ export class ProjectListComponent implements OnInit {
     this.loadProjects();
   }
 
+  get isAdministrator(): boolean {
+    return this.authService.isAdministrator();
+  }
+
   loadProjects(): void {
     this.loading = true;
     this.projectService.getAll().subscribe({
@@ -46,6 +52,11 @@ export class ProjectListComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (!this.isAdministrator) {
+      this.errorMessage = 'Only administrators can create projects.';
+      return;
+    }
+
     if (this.form.invalid) return;
 
     this.submitting = true;

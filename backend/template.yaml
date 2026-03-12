@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Track Activities Backend - Serverless API
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+  VpcId:
+    Type: String
+    Default: vpc-08cfd89a7cff5f870
+    Description: VPC ID for Lambda and RDS
+  SubnetIds:
+    Type: CommaDelimitedList
+    Default: subnet-050a7113fd3e92a8f
+    Description: Private subnet IDs for Lambda (comma-separated)
+  DBSecurityGroupId:
+    Type: String
+    Default: sg-0d20619b247002a54
+    Description: Security Group ID that allows access to RDS
+  DBHost:
+    Type: String
+    Default: einstein.c3g88cukgiw6.us-east-1.rds.amazonaws.com
+    Description: RDS Database Host
+  DBName:
+    Type: String
+    Default: activities_track
+  DBUser:
+    Type: String
+    Default: postgres
+  DBPassword:
+    Type: String
+    Default: Adm1n.2025-
+    Description: RDS Database password
+  CorsOrigin:
+    Type: String
+    Default: '*'
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        NODE_ENV: !Ref Environment
+        DB_HOST: !Ref DBHost
+        DB_PORT: '5432'
+        DB_USER: !Ref DBUser
+        DB_PASSWORD: !Ref DBPassword
+        DB_NAME: !Ref DBName
+        DB_SSL: 'true'
+        DB_SSL_REJECT_UNAUTHORIZED: 'false'
+        CORS_ORIGIN: !Ref CorsOrigin
+        JWT_SECRET: !Sub '{{resolve:secretsmanager:${JWTSecret}:SecretString:jwt_secret}}'
+
+Resources:
+  # Lambda Security Group
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Lambda function
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-lambda-sg'
+
+  # Allow Lambda to access RDS
+  LambdaToRDSIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DBSecurityGroupId
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref LambdaSecurityGroup
+
+  # JWT Secret in Secrets Manager
+  JWTSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub '${AWS::StackName}-jwt-secret'
+      GenerateSecretString:
+        SecretStringTemplate: '{}'
+        GenerateStringKey: jwt_secret
+        PasswordLength: 64
+        ExcludeCharacters: '"@/\'
+
+  # Lambda Function
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-api'
+      CodeUri: ./
+      Handler: lambda.handler
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds: !Ref SubnetIds
+      Events:
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+        ApiRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /
+            Method: ANY
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Ref JWTSecret
+        - VPCAccessPolicy: {}
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - src/lambda.ts
+        Target: es2020
+        Format: cjs
+        Minify: false
+        Sourcemap: false
+        OutExtension:
+          - .js=.js
+
+  # HTTP API Gateway
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref Environment
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowHeaders:
+          - '*'
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/'
+  FunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt ApiFunction.Arn

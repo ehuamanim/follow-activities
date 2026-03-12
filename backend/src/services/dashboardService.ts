@@ -19,6 +19,7 @@ export const getHoursByTeam = async (period: Period) => {
      LEFT JOIN activities a
        ON a.user_id = u.id
        AND a.created_at >= NOW() - $1::interval
+     WHERE u.status = 'A'
      GROUP BY u.id, u.name, u.surnames, u.email
      ORDER BY total_hours DESC`,
     [interval]

@@ -5,9 +5,41 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(100),
   surnames VARCHAR(200),
   email VARCHAR(255) UNIQUE NOT NULL,
+  profile VARCHAR(20) NOT NULL DEFAULT 'Operator',
+  status CHAR(1) NOT NULL DEFAULT 'A',
   password_hash VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS profile VARCHAR(20) NOT NULL DEFAULT 'Operator';
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS status CHAR(1) NOT NULL DEFAULT 'A';
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'users_profile_check'
+  ) THEN
+    ALTER TABLE users
+    ADD CONSTRAINT users_profile_check CHECK (profile IN ('Operator', 'Administrator'));
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'users_status_check'
+  ) THEN
+    ALTER TABLE users
+    ADD CONSTRAINT users_status_check CHECK (status IN ('A', 'I'));
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS roles (
   id SERIAL PRIMARY KEY,

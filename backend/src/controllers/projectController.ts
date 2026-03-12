@@ -20,6 +20,20 @@ export const getProjects = async (_req: AuthRequest, res: Response): Promise<voi
   }
 };
 
+export const getProject = async (_req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projectId = _req.params.id;
+    const result = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId]);
+    if (result.rows.length === 0) {
+      res.status(404).json({ message: 'Project not found' });
+      return;
+    }
+    res.json(result.rows[0]);
+  } catch {
+    res.status(500).json({ message: 'Failed to fetch project' });
+  }
+};
+
 export const createProject = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, description, status } = req.body;
@@ -82,6 +96,7 @@ export const getActivitiesReport = async (req: AuthRequest, res: Response): Prom
        JOIN users u ON u.id = hm.user_id
        JOIN projects p ON p.id = $1
        LEFT JOIN role_agg ra ON ra.user_id = u.id
+      WHERE u.status = 'A'
        ORDER BY hm.year, hm.month, u.surnames, u.name`,
       params
     );
@@ -118,6 +133,7 @@ export const getProjectTeamReport = async (req: AuthRequest, res: Response): Pro
          AND a.project_id = $1
          AND EXTRACT(MONTH FROM a.created_at) = $2
          AND EXTRACT(YEAR FROM a.created_at) = $3
+       WHERE u.status = 'A'
        GROUP BY u.id, u.name, u.surnames, r.name
        ORDER BY u.name, u.surnames`,
       [projectId, month, year]

@@ -17,6 +17,10 @@ export class NavbarComponent {
     return this.authService.getCurrentUser();
   }
 
+  get isAdministrator(): boolean {
+    return this.authService.isAdministrator();
+  }
+
   logout(): void {
     this.authService.logout();
   }

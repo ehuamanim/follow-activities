@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { hoursByTeam, hoursByProject, hoursByRole } from '../controllers/dashboardController';
-import { authenticate } from '../middleware/authMiddleware';
+import { authenticate, requireAdministrator } from '../middleware/authMiddleware';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(requireAdministrator);
 
 router.get('/hours-by-team', hoursByTeam);
 router.get('/hours-by-project', hoursByProject);

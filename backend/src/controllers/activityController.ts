@@ -11,14 +11,34 @@ export const createActivityValidation = [
   validate,
 ];
 
-export const getActivities = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const getActivities = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const currentUserId = req.user?.id;
+    const currentProfile = req.user?.profile;
+
+    if (!currentUserId || !currentProfile) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const isOperator = currentProfile === 'Operator';
+    const query = isOperator
+      ? `SELECT a.*, u.name AS user_name, u.email AS user_email, p.name AS project_name
+         FROM activities a
+         JOIN users u ON u.id = a.user_id
+         JOIN projects p ON p.id = a.project_id
+        WHERE a.user_id = $1 AND u.status = 'A'
+         ORDER BY a.created_at DESC`
+      : `SELECT a.*, u.name AS user_name, u.email AS user_email, p.name AS project_name
+         FROM activities a
+         JOIN users u ON u.id = a.user_id
+         JOIN projects p ON p.id = a.project_id
+        WHERE u.status = 'A'
+         ORDER BY a.created_at DESC`;
+
     const result = await pool.query(
-      `SELECT a.*, u.name AS user_name, u.email AS user_email, p.name AS project_name
-       FROM activities a
-       JOIN users u ON u.id = a.user_id
-       JOIN projects p ON p.id = a.project_id
-       ORDER BY a.created_at DESC`
+      query,
+      isOperator ? [currentUserId] : []
     );
     res.json(result.rows);
   } catch {

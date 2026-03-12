@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest, User } from '../../shared/models';
+import { AuthResponse, LoginRequest, RegisterRequest, User, UserProfile } from '../../shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -49,6 +49,15 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  hasProfile(...profiles: UserProfile[]): boolean {
+    const user = this.getCurrentUser();
+    return !!user && profiles.includes(user.profile);
+  }
+
+  isAdministrator(): boolean {
+    return this.hasProfile('Administrator');
   }
 
   private storeSession(response: AuthResponse): void {

@@ -1,8 +1,11 @@
+export type UserProfile = 'Operator' | 'Administrator';
+
 export interface User {
   id: number;
   name: string;
   surnames: string;
   email: string;
+  profile: UserProfile;
   roles?: Role[];
   created_at?: string;
 }
@@ -61,6 +64,7 @@ export interface RegisterRequest {
   surnames: string;
   email: string;
   password: string;
+  profile: UserProfile;
   role_ids?: number[];
 }
 

@@ -1,12 +1,12 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/database';
-import { CreateUserDTO, UserPublic } from '../models/User';
+import { CreateUserDTO, UserProfile, UserPublic } from '../models/User';
 
 const SALT_ROUNDS = 12;
 
 export const registerUser = async (dto: CreateUserDTO): Promise<{ user: UserPublic; token: string }> => {
-  const { name, surnames, email, password } = dto;
+  const { name, surnames, email, password, profile } = dto;
 
   const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
   if (existing.rows.length > 0) {
@@ -16,19 +16,19 @@ export const registerUser = async (dto: CreateUserDTO): Promise<{ user: UserPubl
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
   const result = await pool.query(
-    'INSERT INTO users (name, surnames, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, name, surnames, email, created_at',
-    [name ?? null, surnames ?? null, email, password_hash]
+    "INSERT INTO users (name, surnames, email, profile, status, password_hash) VALUES ($1, $2, $3, $4, 'A', $5) RETURNING id, name, surnames, email, profile, status, created_at",
+    [name ?? null, surnames ?? null, email, profile, password_hash]
   );
 
   const user: UserPublic = result.rows[0];
-  const token = generateToken(user.id, user.email);
+  const token = generateToken(user.id, user.email, user.profile);
 
   return { user, token };
 };
 
 export const loginUser = async (email: string, password: string): Promise<{ user: UserPublic; token: string }> => {
   const result = await pool.query(
-    'SELECT id, name, surnames, email, password_hash, created_at FROM users WHERE email = $1',
+    "SELECT id, name, surnames, email, profile, status, password_hash, created_at FROM users WHERE email = $1 AND status = 'A'",
     [email]
   );
 
@@ -48,18 +48,20 @@ export const loginUser = async (email: string, password: string): Promise<{ user
     name: row.name,
     surnames: row.surnames,
     email: row.email,
+    profile: row.profile,
+    status: row.status,
     created_at: row.created_at,
   };
 
-  const token = generateToken(user.id, user.email);
+  const token = generateToken(user.id, user.email, user.profile);
   return { user, token };
 };
 
-const generateToken = (id: number, email: string): string => {
+const generateToken = (id: number, email: string, profile: UserProfile): string => {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET not configured');
 
-  return jwt.sign({ id, email }, secret, {
+  return jwt.sign({ id, email, profile }, secret, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   } as jwt.SignOptions);
 };

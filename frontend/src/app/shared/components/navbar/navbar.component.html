@@ -1,10 +1,11 @@
 <nav class="bg-white shadow-sm border-b border-gray-200">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="w-full px-6">
     <div class="flex justify-between h-16 items-center">
       <div class="flex items-center gap-8">
         <img src="assets/cirrus-logo.png" alt="Activities track" class="h-9" />
         <div class="flex gap-4">
           <a
+            *ngIf="isAdministrator"
             routerLink="/dashboard"
             routerLinkActive="text-blue-600 font-semibold"
             class="text-gray-600 hover:text-blue-600 text-sm transition"
@@ -13,17 +14,24 @@
             routerLink="/activities"
             routerLinkActive="text-blue-600 font-semibold"
             class="text-gray-600 hover:text-blue-600 text-sm transition"
-          >Activities</a>
+          >My activities</a>
           <a
             routerLink="/projects"
             routerLinkActive="text-blue-600 font-semibold"
             class="text-gray-600 hover:text-blue-600 text-sm transition"
           >Projects</a>
           <a
+            *ngIf="isAdministrator"
             routerLink="/reports/activities"
             routerLinkActive="text-blue-600 font-semibold"
             class="text-gray-600 hover:text-blue-600 text-sm transition"
           >Reports</a>
+          <a
+            *ngIf="isAdministrator"
+            routerLink="/users"
+            routerLinkActive="text-blue-600 font-semibold"
+            class="text-gray-600 hover:text-blue-600 text-sm transition"
+          >Users</a>
         </div>
       </div>
       <div class="flex items-center gap-4">
