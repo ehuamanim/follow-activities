@@ -50,7 +50,7 @@
             <col class="w-40" />
             <col class="w-20" />
             <col />
-            <col *ngIf="isAdministrator" class="w-24" />
+            <col *ngIf="isAdministrator" class="w-20" />
           </colgroup>
           <thead>
             <tr class="text-xs text-gray-400 uppercase tracking-wider">
@@ -59,7 +59,7 @@
               <th class="px-6 py-2 text-left font-medium">Role</th>
               <th class="px-6 py-2 text-left font-medium">Hours</th>
               <th class="px-6 py-2 text-left font-medium">Tasks</th>
-              <th *ngIf="isAdministrator" class="px-6 py-2 text-left font-medium">Actions</th>
+              <th *ngIf="isAdministrator" class="px-6 py-2 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
@@ -81,21 +81,30 @@
               </td>
               <td class="px-6 py-3 text-sm text-gray-600">{{ entry.activity.tasks }}</td>
               <td *ngIf="isAdministrator" class="px-6 py-3 whitespace-nowrap text-sm">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center justify-end gap-2">
                   <button
                     type="button"
                     (click)="navigateToEdit(entry.activity.id)"
-                    class="text-blue-600 hover:text-blue-800 font-medium"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-800"
+                    title="Edit activity"
+                    aria-label="Edit activity"
                   >
-                    Edit
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M14.69 2.86a2 2 0 0 1 2.83 2.83l-8.2 8.2a1 1 0 0 1-.43.26l-3.1.9a.5.5 0 0 1-.62-.62l.9-3.1a1 1 0 0 1 .26-.43l8.2-8.2ZM13.98 4.27 6.8 11.45l-.5 1.71 1.71-.5 7.18-7.18-1.21-1.21Z" />
+                    </svg>
                   </button>
                   <button
                     type="button"
                     (click)="deleteActivity(entry.activity.id)"
                     [disabled]="deletingActivityId === entry.activity.id"
-                    class="text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-600 hover:bg-red-50 hover:text-red-800 disabled:opacity-50"
+                    title="Delete activity"
+                    aria-label="Delete activity"
                   >
-                    {{ deletingActivityId === entry.activity.id ? 'Deleting...' : 'Delete' }}
+                    <svg *ngIf="deletingActivityId !== entry.activity.id" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M7.5 2a1 1 0 0 0-.95.68L6.26 4H4a1 1 0 1 0 0 2h.55l.79 9.5A2 2 0 0 0 7.33 17h5.34a2 2 0 0 0 1.99-1.5l.79-9.5H16a1 1 0 1 0 0-2h-2.26l-.29-1.32A1 1 0 0 0 12.5 2h-5ZM8.3 4h3.4l.22 1H8.08l.22-1Zm.2 4a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1Zm3 0a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1Z" />
+                    </svg>
+                    <span *ngIf="deletingActivityId === entry.activity.id" class="text-[10px] font-semibold">...</span>
                   </button>
                 </div>
               </td>
