@@ -119,6 +119,65 @@ export class ActivityListComponent implements OnInit {
     this.loadActivities();
   }
 
+  downloadFilteredActivitiesExcel(): void {
+    if (this.activities.length === 0) {
+      return;
+    }
+
+    const rows = this.activities
+      .map((activity) => {
+        const date = activity.activity_date || activity.created_at?.split('T')[0] || '';
+        const userName = activity.user_name || activity.user?.name || `User #${activity.user_id}`;
+        const projectName = activity.project_name || activity.project?.name || String(activity.project_id);
+        const roleNames = activity.role_names || 'No role';
+        const hours = Number(activity.hours);
+        const costPerHour = Number(activity.user_cost_per_hour ?? 0);
+        const totalCost = hours * costPerHour;
+
+        return `
+      <Row>
+        <Cell><Data ss:Type="String">${this.escapeXml(date)}</Data></Cell>
+        <Cell><Data ss:Type="String">${this.escapeXml(userName)}</Data></Cell>
+        <Cell><Data ss:Type="String">${this.escapeXml(projectName)}</Data></Cell>
+        <Cell><Data ss:Type="String">${this.escapeXml(roleNames)}</Data></Cell>
+        <Cell><Data ss:Type="Number">${hours}</Data></Cell>
+        <Cell><Data ss:Type="Number">${costPerHour}</Data></Cell>
+        <Cell><Data ss:Type="Number">${totalCost}</Data></Cell>
+        <Cell><Data ss:Type="String">${this.escapeXml(activity.tasks || '')}</Data></Cell>
+      </Row>`;
+      })
+      .join('');
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Worksheet ss:Name="Activities">
+    <Table>
+      <Row>
+        <Cell><Data ss:Type="String">Date</Data></Cell>
+        <Cell><Data ss:Type="String">User</Data></Cell>
+        <Cell><Data ss:Type="String">Project</Data></Cell>
+        <Cell><Data ss:Type="String">Role</Data></Cell>
+        <Cell><Data ss:Type="String">Hours</Data></Cell>
+        <Cell><Data ss:Type="String">User Cost Per Hour</Data></Cell>
+        <Cell><Data ss:Type="String">Total Cost</Data></Cell>
+        <Cell><Data ss:Type="String">Tasks</Data></Cell>
+      </Row>
+      ${rows}
+    </Table>
+  </Worksheet>
+</Workbook>`;
+
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'activities-filtered-report.xls';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   clearDateFilters(): void {
     this.filtersForm.patchValue({ start_date: '', end_date: '' });
     this.loadActivities();
@@ -210,6 +269,15 @@ export class ActivityListComponent implements OnInit {
         this.errorMessage = err?.error?.message || 'Failed to load users.';
       }
     });
+  }
+
+  private escapeXml(value: string): string {
+    return value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&apos;');
   }
 
   navigateToCreate(): void {

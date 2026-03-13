@@ -69,6 +69,15 @@
       >
         Reset
       </button>
+
+      <button
+        type="button"
+        (click)="downloadFilteredActivitiesExcel()"
+        [disabled]="loading || activities.length === 0"
+        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition disabled:opacity-50"
+      >
+        Download Excel
+      </button>
     </form>
   </div>
 

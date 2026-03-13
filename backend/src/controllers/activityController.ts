@@ -65,7 +65,7 @@ export const getActivities = async (req: AuthRequest, res: Response): Promise<vo
        LEFT JOIN user_roles ur ON ur.user_id = a.user_id
        LEFT JOIN roles r ON r.id = ur.role_id
        WHERE ${filters.join(' AND ')}
-       GROUP BY a.id, u.name, u.email, p.name
+      GROUP BY a.id, u.name, u.email, u.cost_per_hour, p.name
        ORDER BY a.activity_date DESC, p.name`,
       values
     );
@@ -130,7 +130,7 @@ export const getActivityById = async (req: AuthRequest, res: Response): Promise<
        LEFT JOIN user_roles ur ON ur.user_id = a.user_id
        LEFT JOIN roles r ON r.id = ur.role_id
        WHERE a.id = $1 ${ownerFilter} AND u.status = 'A'
-       GROUP BY a.id, u.name, u.email, p.name`,
+       GROUP BY a.id, u.name, u.email, u.cost_per_hour, p.name`,
       params
     );
 
@@ -205,7 +205,7 @@ export const updateActivity = async (req: AuthRequest, res: Response): Promise<v
        LEFT JOIN user_roles ur ON ur.user_id = a.user_id
        LEFT JOIN roles r ON r.id = ur.role_id
        WHERE a.id = $1 AND u.status = 'A'
-       GROUP BY a.id, u.name, u.email, p.name`,
+       GROUP BY a.id, u.name, u.email, u.cost_per_hour, p.name`,
       [activityId]
     );
 
