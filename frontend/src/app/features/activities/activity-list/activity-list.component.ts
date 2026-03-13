@@ -1,9 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ActivityService } from '../../../core/services/activity.service';
+import { ActivityFilters, ActivityService } from '../../../core/services/activity.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Activity } from '../../../shared/models';
+import { UserService } from '../../../core/services/user.service';
+import { Activity, User } from '../../../shared/models';
 
 interface ActivityEntry {
   activity: Activity;
@@ -24,35 +26,86 @@ interface UserGroup {
   totalHours: number;
 }
 
+interface ActivityIndicators {
+  totalActivities: number;
+  uniqueProjects: number;
+  totalHours: number;
+  totalCost: number;
+}
+
 @Component({
   selector: 'app-activity-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './activity-list.component.html'
 })
 export class ActivityListComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
   private readonly activityService = inject(ActivityService);
   private readonly authService = inject(AuthService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
 
   activities: Activity[] = [];
   groupedActivities: UserGroup[] = [];
+  users: User[] = [];
   loading = false;
   errorMessage = '';
   isAdministrator = false;
   deletingActivityId: number | null = null;
+  indicators: ActivityIndicators = {
+    totalActivities: 0,
+    uniqueProjects: 0,
+    totalHours: 0,
+    totalCost: 0
+  };
+
+  readonly currentUser = this.authService.getCurrentUser();
+
+  readonly filtersForm = this.fb.group({
+    user_id: [null as number | null],
+    start_date: [''],
+    end_date: ['']
+  });
 
   ngOnInit(): void {
     this.isAdministrator = this.authService.isAdministrator();
+
+    if (this.isAdministrator && this.currentUser?.id) {
+      this.filtersForm.patchValue({ user_id: this.currentUser.id });
+      this.loadUsers();
+      return;
+    }
+
     this.loadActivities();
   }
 
   loadActivities(): void {
+    const startDate = this.filtersForm.value.start_date || undefined;
+    const endDate = this.filtersForm.value.end_date || undefined;
+
+    if (startDate && endDate && startDate > endDate) {
+      this.errorMessage = 'Initial date must be earlier than or equal to final date.';
+      return;
+    }
+
     this.loading = true;
-    this.activityService.getAll().subscribe({
+    this.errorMessage = '';
+
+    const filters: ActivityFilters = {
+      startDate,
+      endDate
+    };
+
+    if (this.isAdministrator && this.filtersForm.value.user_id !== null) {
+      filters.userId = this.filtersForm.value.user_id;
+    }
+
+    this.activityService.getAll(filters).subscribe({
       next: (data) => {
         this.activities = data;
         this.groupedActivities = this.groupActivities(data);
+        this.indicators = this.buildIndicators(data);
         this.loading = false;
       },
       error: (err) => {
@@ -60,6 +113,24 @@ export class ActivityListComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  applyFilters(): void {
+    this.loadActivities();
+  }
+
+  clearDateFilters(): void {
+    this.filtersForm.patchValue({ start_date: '', end_date: '' });
+    this.loadActivities();
+  }
+
+  resetFilters(): void {
+    this.filtersForm.patchValue({
+      user_id: this.isAdministrator ? (this.currentUser?.id ?? null) : null,
+      start_date: '',
+      end_date: ''
+    });
+    this.loadActivities();
   }
 
   private groupActivities(activities: Activity[]): UserGroup[] {
@@ -111,6 +182,34 @@ export class ActivityListComponent implements OnInit {
           totalHours: months.reduce((sum, m) => sum + m.totalHours, 0)
         };
       });
+  }
+
+  private buildIndicators(activities: Activity[]): ActivityIndicators {
+    const projectKeys = new Set(
+      activities.map(activity => activity.project_name || String(activity.project_id))
+    );
+
+    return {
+      totalActivities: activities.length,
+      uniqueProjects: projectKeys.size,
+      totalHours: activities.reduce((sum, activity) => sum + Number(activity.hours), 0),
+      totalCost: activities.reduce(
+        (sum, activity) => sum + (Number(activity.hours) * Number(activity.cost_per_hour)),
+        0
+      )
+    };
+  }
+
+  private loadUsers(): void {
+    this.userService.getAll().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.loadActivities();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Failed to load users.';
+      }
+    });
   }
 
   navigateToCreate(): void {

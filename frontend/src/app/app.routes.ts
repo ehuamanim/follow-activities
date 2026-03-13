@@ -10,6 +10,7 @@ import { ActivityFormComponent } from './features/activities/activity-form/activ
 import { ProjectListComponent } from './features/projects/project-list.component';
 import { TeamReportComponent } from './features/projects/team-report/team-report.component';
 import { ActivitiesReportComponent } from './features/reports/activities-report/activities-report.component';
+import { ProjectCostReportComponent } from './features/reports/project-cost-report/project-cost-report.component';
 import { UserAdminComponent } from './features/users/user-admin.component';
 
 export const routes: Routes = [
@@ -44,6 +45,12 @@ export const routes: Routes = [
       {
         path: 'reports/activities',
         component: ActivitiesReportComponent,
+        canActivate: [profileGuard],
+        data: { profiles: ['Administrator'] }
+      },
+      {
+        path: 'reports/project-costs',
+        component: ProjectCostReportComponent,
         canActivate: [profileGuard],
         data: { profiles: ['Administrator'] }
       },

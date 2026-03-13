@@ -29,6 +29,7 @@ export interface Activity {
   user_id: number;
   project_id: number;
   hours: number;
+  cost_per_hour: number;
   tasks: string;
   activity_date?: string;
   created_at?: string;
@@ -57,6 +58,17 @@ export interface ProjectActivitiesReportEntry {
   month: number;
   year: number;
   total_hours: number;
+}
+
+export interface ProjectCostReportEntry {
+  project_id: number;
+  project_name: string;
+  user_id: number;
+  name: string;
+  surnames: string;
+  role: string;
+  total_hours: number;
+  total_cost: number;
 }
 
 export interface LoginRequest {

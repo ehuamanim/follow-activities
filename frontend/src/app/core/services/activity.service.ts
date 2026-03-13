@@ -1,16 +1,34 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Activity } from '../../shared/models';
 
+export interface ActivityFilters {
+  userId?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ActivityService {
-  private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
-  getAll(): Observable<Activity[]> {
-    return this.http.get<Activity[]>(`${this.apiUrl}/activities`).pipe(
+  getAll(filters?: ActivityFilters): Observable<Activity[]> {
+    let params = new HttpParams();
+
+    if (filters?.userId !== undefined) {
+      params = params.set('user_id', filters.userId);
+    }
+    if (filters?.startDate) {
+      params = params.set('start_date', filters.startDate);
+    }
+    if (filters?.endDate) {
+      params = params.set('end_date', filters.endDate);
+    }
+
+    return this.http.get<Activity[]>(`${this.apiUrl}/activities`, { params }).pipe(
       catchError(err => throwError(() => err))
     );
   }

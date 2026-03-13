@@ -28,6 +28,12 @@
           >Reports</a>
           <a
             *ngIf="isAdministrator"
+            routerLink="/reports/project-costs"
+            routerLinkActive="text-blue-600 font-semibold"
+            class="text-gray-600 hover:text-blue-600 text-sm transition"
+          >Project Costs</a>
+          <a
+            *ngIf="isAdministrator"
             routerLink="/users"
             routerLinkActive="text-blue-600 font-semibold"
             class="text-gray-600 hover:text-blue-600 text-sm transition"

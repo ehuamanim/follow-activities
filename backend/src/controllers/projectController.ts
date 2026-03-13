@@ -49,10 +49,10 @@ export const createProject = async (req: AuthRequest, res: Response): Promise<vo
 
 export const getActivitiesReport = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const projectId = parseInt(req.params.id, 10);
-    const userId = req.query['user_id'] ? parseInt(req.query['user_id'] as string, 10) : null;
+    const projectId = Number.parseInt(req.params.id, 10);
+    const userId = req.query['user_id'] ? Number.parseInt(req.query['user_id'] as string, 10) : null;
 
-    if (isNaN(projectId)) {
+    if (Number.isNaN(projectId)) {
       res.status(400).json({ message: 'Invalid project id' });
       return;
     }
@@ -60,7 +60,7 @@ export const getActivitiesReport = async (req: AuthRequest, res: Response): Prom
     const params: (number)[] = [projectId];
     let userFilter = '';
 
-    if (userId !== null && !isNaN(userId)) {
+    if (userId !== null && !Number.isNaN(userId)) {
       params.push(userId);
       userFilter = `AND a.user_id = $2`;
     }
@@ -107,13 +107,74 @@ export const getActivitiesReport = async (req: AuthRequest, res: Response): Prom
   }
 };
 
+export const getProjectCostReport = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projectId = req.query['project_id'] ? Number.parseInt(req.query['project_id'] as string, 10) : null;
+    const startDate = typeof req.query['start_date'] === 'string' ? req.query['start_date'] : null;
+    const endDate = typeof req.query['end_date'] === 'string' ? req.query['end_date'] : null;
+
+    const params: Array<number | string> = [];
+    const filters = [`u.status = 'A'`];
+
+    if (projectId !== null) {
+      if (Number.isNaN(projectId)) {
+        res.status(400).json({ message: 'Invalid project id' });
+        return;
+      }
+
+      params.push(projectId);
+      filters.push(`a.project_id = $${params.length}`);
+    }
+
+    if (startDate) {
+      params.push(startDate);
+      filters.push(`a.activity_date >= $${params.length}`);
+    }
+
+    if (endDate) {
+      params.push(endDate);
+      filters.push(`a.activity_date <= $${params.length}`);
+    }
+
+    const result = await pool.query(
+      `WITH role_agg AS (
+         SELECT ur.user_id,
+                COALESCE(STRING_AGG(r.name, ', ' ORDER BY r.name), 'No role') AS role
+         FROM user_roles ur
+         JOIN roles r ON r.id = ur.role_id
+         GROUP BY ur.user_id
+       )
+       SELECT p.id AS project_id,
+              p.name AS project_name,
+              u.id AS user_id,
+              u.name,
+              u.surnames,
+              COALESCE(ra.role, 'No role') AS role,
+              SUM(a.hours) AS total_hours,
+              SUM(a.hours * a.cost_per_hour) AS total_cost
+       FROM activities a
+       JOIN users u ON u.id = a.user_id
+       JOIN projects p ON p.id = a.project_id
+       LEFT JOIN role_agg ra ON ra.user_id = u.id
+       WHERE ${filters.join(' AND ')}
+       GROUP BY p.id, p.name, u.id, u.name, u.surnames, ra.role
+       ORDER BY p.name, u.surnames, u.name`,
+      params
+    );
+
+    res.json(result.rows);
+  } catch {
+    res.status(500).json({ message: 'Failed to fetch cost report' });
+  }
+};
+
 export const getProjectTeamReport = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const projectId = parseInt(req.params.id, 10);
-    const month = parseInt(req.query['month'] as string, 10);
-    const year = parseInt(req.query['year'] as string, 10);
+    const projectId = Number.parseInt(req.params.id, 10);
+    const month = Number.parseInt(req.query['month'] as string, 10);
+    const year = Number.parseInt(req.query['year'] as string, 10);
 
-    if (isNaN(projectId) || isNaN(month) || isNaN(year) || month < 1 || month > 12) {
+    if (Number.isNaN(projectId) || Number.isNaN(month) || Number.isNaN(year) || month < 1 || month > 12) {
       res.status(400).json({ message: 'Invalid project, month or year' });
       return;
     }

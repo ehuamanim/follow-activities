@@ -1,13 +1,13 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Project, TeamReportEntry, ProjectActivitiesReportEntry } from '../../shared/models';
+import { Project, TeamReportEntry, ProjectActivitiesReportEntry, ProjectCostReportEntry } from '../../shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
-  private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
   getAll(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.apiUrl}/projects`).pipe(
@@ -53,6 +53,24 @@ export class ProjectService {
       .get<ProjectActivitiesReportEntry[]>(
         `${this.apiUrl}/projects/${projectId}/activities-report${params}`
       )
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  getCostReport(projectId?: number, startDate?: string, endDate?: string): Observable<ProjectCostReportEntry[]> {
+    let params = new HttpParams();
+
+    if (projectId !== undefined) {
+      params = params.set('project_id', projectId);
+    }
+    if (startDate) {
+      params = params.set('start_date', startDate);
+    }
+    if (endDate) {
+      params = params.set('end_date', endDate);
+    }
+
+    return this.http
+      .get<ProjectCostReportEntry[]>(`${this.apiUrl}/projects/cost-report`, { params })
       .pipe(catchError(err => throwError(() => err)));
   }
 }

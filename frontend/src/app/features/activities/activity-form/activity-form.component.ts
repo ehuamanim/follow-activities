@@ -23,6 +23,7 @@ export class ActivityFormComponent implements OnInit {
     project_id: ['', Validators.required],
     activity_date: [new Date().toISOString().split('T')[0], Validators.required],
     hours: [null as number | null, [Validators.required, Validators.min(0.5)]],
+    cost_per_hour: [null as number | null, [Validators.required, Validators.min(0)]],
     tasks: ['', Validators.required]
   });
 
@@ -72,11 +73,12 @@ export class ActivityFormComponent implements OnInit {
     this.submitting = true;
     this.errorMessage = '';
 
-    const { project_id, activity_date, hours, tasks } = this.form.value;
+    const { project_id, activity_date, hours, cost_per_hour, tasks } = this.form.value;
     const payload = {
       project_id: Number(project_id),
       activity_date: activity_date!,
       hours: hours!,
+      cost_per_hour: cost_per_hour!,
       tasks: tasks!
     };
 
@@ -104,6 +106,7 @@ export class ActivityFormComponent implements OnInit {
           project_id: String(activity.project_id),
           activity_date: (activity.activity_date || '').split('T')[0],
           hours: Number(activity.hours),
+          cost_per_hour: Number(activity.cost_per_hour),
           tasks: activity.tasks
         });
         this.loading = false;
