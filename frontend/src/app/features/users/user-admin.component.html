@@ -69,22 +69,33 @@
 
     <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="space-y-4" novalidate>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-        <input formControlName="name" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+        <label for="edit-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+        <input id="edit-name" formControlName="name" class="w-full border border-gray-300 rounded-md px-3 py-2" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Surnames</label>
-        <input formControlName="surnames" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+        <label for="edit-surnames" class="block text-sm font-medium text-gray-700 mb-1">Surnames</label>
+        <input id="edit-surnames" formControlName="surnames" class="w-full border border-gray-300 rounded-md px-3 py-2" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input formControlName="email" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+        <label for="edit-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input id="edit-email" formControlName="email" class="w-full border border-gray-300 rounded-md px-3 py-2" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Profile</label>
-        <select formControlName="profile" class="w-full border border-gray-300 rounded-md px-3 py-2">
+        <label for="edit-profile" class="block text-sm font-medium text-gray-700 mb-1">Profile</label>
+        <select id="edit-profile" formControlName="profile" class="w-full border border-gray-300 rounded-md px-3 py-2">
           <option *ngFor="let profile of profiles" [value]="profile">{{ profile }}</option>
         </select>
+      </div>
+      <div>
+        <label for="edit-cost-per-hour" class="block text-sm font-medium text-gray-700 mb-1">Cost per hour</label>
+        <input
+          id="edit-cost-per-hour"
+          type="number"
+          min="0"
+          step="0.01"
+          formControlName="cost_per_hour"
+          class="w-full border border-gray-300 rounded-md px-3 py-2"
+        />
       </div>
       <div>
         <p class="block text-sm font-medium text-gray-700 mb-2">Project Roles</p>
@@ -111,12 +122,12 @@
 
     <form [formGroup]="passwordForm" (ngSubmit)="savePassword()" class="space-y-4" novalidate>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-        <input type="password" formControlName="password" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+        <input id="password" type="password" formControlName="password" class="w-full border border-gray-300 rounded-md px-3 py-2" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-        <input type="password" formControlName="confirmPassword" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+        <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+        <input id="confirm-password" type="password" formControlName="confirmPassword" class="w-full border border-gray-300 rounded-md px-3 py-2" />
       </div>
       <div class="flex gap-3">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md">Save Password</button>

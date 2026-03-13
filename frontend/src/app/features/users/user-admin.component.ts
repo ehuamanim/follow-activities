@@ -13,8 +13,8 @@ import { UpdateUserRequest, UserService } from '../../core/services/user.service
   templateUrl: './user-admin.component.html',
 })
 export class UserAdminComponent implements OnInit {
-  private userService = inject(UserService);
-  private fb = inject(FormBuilder);
+  private readonly userService = inject(UserService);
+  private readonly fb = inject(FormBuilder);
 
   users: User[] = [];
   roles: Role[] = [];
@@ -32,6 +32,7 @@ export class UserAdminComponent implements OnInit {
     surnames: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     profile: ['Operator' as UserProfile, Validators.required],
+    cost_per_hour: [0, [Validators.required, Validators.min(0)]],
     role_ids: [[] as number[]],
   });
 
@@ -76,6 +77,7 @@ export class UserAdminComponent implements OnInit {
       surnames: user.surnames || '',
       email: user.email,
       profile: user.profile,
+      cost_per_hour: user.cost_per_hour ?? 0,
       role_ids: selectedRoleIds,
     });
   }
@@ -105,6 +107,7 @@ export class UserAdminComponent implements OnInit {
       surnames: payload.surnames,
       email: payload.email,
       profile: payload.profile,
+      cost_per_hour: payload.cost_per_hour,
       role_ids: payload.role_ids || [],
     }).subscribe({
       next: () => {
@@ -153,7 +156,7 @@ export class UserAdminComponent implements OnInit {
   }
 
   deleteUser(userId: number): void {
-    const confirmed = window.confirm('Are you sure you want to delete this user?');
+    const confirmed = globalThis.confirm('Are you sure you want to delete this user?');
     if (!confirmed) {
       return;
     }

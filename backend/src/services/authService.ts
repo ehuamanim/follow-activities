@@ -6,7 +6,7 @@ import { CreateUserDTO, UserProfile, UserPublic } from '../models/User';
 const SALT_ROUNDS = 12;
 
 export const registerUser = async (dto: CreateUserDTO): Promise<{ user: UserPublic; token: string }> => {
-  const { name, surnames, email, password, profile } = dto;
+  const { name, surnames, email, password, profile, cost_per_hour } = dto;
 
   const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
   if (existing.rows.length > 0) {
@@ -16,8 +16,8 @@ export const registerUser = async (dto: CreateUserDTO): Promise<{ user: UserPubl
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
   const result = await pool.query(
-    "INSERT INTO users (name, surnames, email, profile, status, password_hash) VALUES ($1, $2, $3, $4, 'A', $5) RETURNING id, name, surnames, email, profile, status, created_at",
-    [name ?? null, surnames ?? null, email, profile, password_hash]
+    "INSERT INTO users (name, surnames, email, profile, cost_per_hour, status, password_hash) VALUES ($1, $2, $3, $4, $5, 'A', $6) RETURNING id, name, surnames, email, profile, cost_per_hour, status, created_at",
+    [name ?? null, surnames ?? null, email, profile, cost_per_hour ?? 0, password_hash]
   );
 
   const user: UserPublic = result.rows[0];
@@ -28,7 +28,7 @@ export const registerUser = async (dto: CreateUserDTO): Promise<{ user: UserPubl
 
 export const loginUser = async (email: string, password: string): Promise<{ user: UserPublic; token: string }> => {
   const result = await pool.query(
-    "SELECT id, name, surnames, email, profile, status, password_hash, created_at FROM users WHERE email = $1 AND status = 'A'",
+    "SELECT id, name, surnames, email, profile, cost_per_hour, status, password_hash, created_at FROM users WHERE email = $1 AND status = 'A'",
     [email]
   );
 
@@ -49,6 +49,7 @@ export const loginUser = async (email: string, password: string): Promise<{ user
     surnames: row.surnames,
     email: row.email,
     profile: row.profile,
+    cost_per_hour: row.cost_per_hour,
     status: row.status,
     created_at: row.created_at,
   };

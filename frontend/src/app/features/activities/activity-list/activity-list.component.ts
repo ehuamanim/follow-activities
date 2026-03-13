@@ -194,7 +194,7 @@ export class ActivityListComponent implements OnInit {
       uniqueProjects: projectKeys.size,
       totalHours: activities.reduce((sum, activity) => sum + Number(activity.hours), 0),
       totalCost: activities.reduce(
-        (sum, activity) => sum + (Number(activity.hours) * Number(activity.cost_per_hour)),
+        (sum, activity) => sum + (Number(activity.hours) * Number(activity.user_cost_per_hour ?? 0)),
         0
       )
     };

@@ -9,13 +9,14 @@ export interface UpdateUserRequest {
   surnames?: string;
   email?: string;
   profile?: 'Operator' | 'Administrator';
+  cost_per_hour?: number;
   role_ids?: number[];
 }
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
   getAll(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/users`).pipe(

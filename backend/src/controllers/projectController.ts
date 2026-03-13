@@ -151,7 +151,7 @@ export const getProjectCostReport = async (req: AuthRequest, res: Response): Pro
               u.surnames,
               COALESCE(ra.role, 'No role') AS role,
               SUM(a.hours) AS total_hours,
-              SUM(a.hours * a.cost_per_hour) AS total_cost
+        SUM(a.hours * u.cost_per_hour) AS total_cost
        FROM activities a
        JOIN users u ON u.id = a.user_id
        JOIN projects p ON p.id = a.project_id

@@ -8,10 +8,25 @@ import { registerUser } from '../services/authService';
 
 const SALT_ROUNDS = 12;
 
+const addUserUpdateField = (
+  updates: string[],
+  values: Array<string | number>,
+  fieldName: string,
+  value: string | number | undefined
+): void => {
+  if (value === undefined) {
+    return;
+  }
+
+  updates.push(`${fieldName} = $${updates.length + 1}`);
+  values.push(value);
+};
+
 export const createUserValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('profile').isIn(['Operator', 'Administrator']).withMessage('Profile must be Operator or Administrator'),
+  body('cost_per_hour').optional().isFloat({ min: 0 }).withMessage('Cost per hour must be a valid non-negative number'),
   body('role_ids').optional().isArray().withMessage('role_ids must be an array'),
   body('role_ids.*').optional().isInt({ min: 1 }).withMessage('Each role id must be a valid integer'),
   body('name').optional().isString(),
@@ -22,6 +37,7 @@ export const createUserValidation = [
 export const updateUserValidation = [
   body('email').optional().isEmail().withMessage('Valid email is required'),
   body('profile').optional().isIn(['Operator', 'Administrator']).withMessage('Profile must be Operator or Administrator'),
+  body('cost_per_hour').optional().isFloat({ min: 0 }).withMessage('Cost per hour must be a valid non-negative number'),
   body('role_ids').optional().isArray().withMessage('role_ids must be an array'),
   body('role_ids.*').optional().isInt({ min: 1 }).withMessage('Each role id must be a valid integer'),
   body('name').optional().isString(),
@@ -37,7 +53,7 @@ export const changePasswordValidation = [
 export const getUsers = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const result = await pool.query(
-      "SELECT id, name, surnames, email, profile, status, created_at FROM users WHERE status = 'A' ORDER BY created_at DESC"
+      "SELECT id, name, surnames, email, profile, cost_per_hour, status, created_at FROM users WHERE status = 'A' ORDER BY created_at DESC"
     );
     res.json(result.rows);
   } catch {
@@ -49,7 +65,7 @@ export const getUserById = async (req: AuthRequest, res: Response): Promise<void
   try {
     const { id } = req.params;
     const result = await pool.query(
-      `SELECT u.id, u.name, u.surnames, u.email, u.profile, u.created_at,
+      `SELECT u.id, u.name, u.surnames, u.email, u.profile, u.cost_per_hour, u.created_at,
               COALESCE(
                 json_agg(json_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL),
                 '[]'
@@ -103,33 +119,23 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
 
 export const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = parseInt(req.params.id, 10);
+    const userId = Number.parseInt(req.params.id, 10);
     if (Number.isNaN(userId)) {
       res.status(400).json({ message: 'Invalid user id' });
       return;
     }
 
-    const { name, surnames, email, profile, role_ids } = req.body;
+    const { name, surnames, email, profile, cost_per_hour, role_ids } = req.body;
+    const normalizedCostPerHour = cost_per_hour === undefined ? undefined : Number(cost_per_hour);
 
     const updates: string[] = [];
-    const values: Array<string> = [];
+    const values: Array<string | number> = [];
 
-    if (name !== undefined) {
-      updates.push(`name = $${updates.length + 1}`);
-      values.push(name);
-    }
-    if (surnames !== undefined) {
-      updates.push(`surnames = $${updates.length + 1}`);
-      values.push(surnames);
-    }
-    if (email !== undefined) {
-      updates.push(`email = $${updates.length + 1}`);
-      values.push(email);
-    }
-    if (profile !== undefined) {
-      updates.push(`profile = $${updates.length + 1}`);
-      values.push(profile);
-    }
+    addUserUpdateField(updates, values, 'name', name);
+    addUserUpdateField(updates, values, 'surnames', surnames);
+    addUserUpdateField(updates, values, 'email', email);
+    addUserUpdateField(updates, values, 'profile', profile);
+    addUserUpdateField(updates, values, 'cost_per_hour', normalizedCostPerHour);
 
     if (updates.length > 0) {
       values.push(userId.toString());
@@ -150,7 +156,7 @@ export const updateUser = async (req: AuthRequest, res: Response): Promise<void>
     }
 
     const result = await pool.query(
-      `SELECT u.id, u.name, u.surnames, u.email, u.profile, u.created_at,
+      `SELECT u.id, u.name, u.surnames, u.email, u.profile, u.cost_per_hour, u.created_at,
               COALESCE(
                 json_agg(json_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL),
                 '[]'
@@ -178,7 +184,7 @@ export const updateUser = async (req: AuthRequest, res: Response): Promise<void>
 
 export const updateUserRoles = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = parseInt(req.params.id, 10);
+    const userId = Number.parseInt(req.params.id, 10);
     const { role_ids } = req.body;
 
     if (Number.isNaN(userId)) {
@@ -207,7 +213,7 @@ export const updateUserRoles = async (req: AuthRequest, res: Response): Promise<
 
 export const changeUserPassword = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = parseInt(req.params.id, 10);
+    const userId = Number.parseInt(req.params.id, 10);
     if (Number.isNaN(userId)) {
       res.status(400).json({ message: 'Invalid user id' });
       return;
@@ -230,7 +236,7 @@ export const changeUserPassword = async (req: AuthRequest, res: Response): Promi
 
 export const deleteUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = parseInt(req.params.id, 10);
+    const userId = Number.parseInt(req.params.id, 10);
     if (Number.isNaN(userId)) {
       res.status(400).json({ message: 'Invalid user id' });
       return;

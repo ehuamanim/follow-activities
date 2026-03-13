@@ -6,6 +6,7 @@ export interface User {
   surnames: string;
   email: string;
   profile: UserProfile;
+  cost_per_hour: number;
   roles?: Role[];
   created_at?: string;
 }
@@ -29,12 +30,12 @@ export interface Activity {
   user_id: number;
   project_id: number;
   hours: number;
-  cost_per_hour: number;
   tasks: string;
   activity_date?: string;
   created_at?: string;
   user_name?: string;
   user_email?: string;
+  user_cost_per_hour?: number;
   project_name?: string;
   role_names?: string;
   user?: User;
