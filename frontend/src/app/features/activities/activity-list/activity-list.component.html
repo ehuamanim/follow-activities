@@ -63,7 +63,7 @@
           <tbody class="divide-y divide-gray-100">
             <tr *ngFor="let entry of monthGroup.entries" class="hover:bg-gray-50">
               <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                {{ entry.date | date:'mediumDate' }}
+                {{ entry.date | date:'mediumDate':'UTC' }}
               </td>
               <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-800">
                 {{ entry.activity.project_name || entry.activity.project?.name || entry.activity.project_id }}
