@@ -12,6 +12,14 @@ export const createActivityValidation = [
   validate,
 ];
 
+export const updateActivityValidation = [
+  body('project_id').optional().isInt({ min: 1 }).withMessage('Valid project_id is required'),
+  body('hours').optional().isFloat({ min: 0.1 }).withMessage('Hours must be a positive number'),
+  body('tasks').optional().notEmpty().withMessage('Tasks description cannot be empty'),
+  body('activity_date').optional().isDate().withMessage('activity_date must be a valid date (YYYY-MM-DD)'),
+  validate,
+];
+
 export const getActivities = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const currentUserId = req.user?.id;
@@ -75,5 +83,124 @@ export const createActivity = async (req: AuthRequest, res: Response): Promise<v
     res.status(201).json(result.rows[0]);
   } catch {
     res.status(500).json({ message: 'Failed to create activity' });
+  }
+};
+
+export const getActivityById = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const activityId = Number.parseInt(req.params.id, 10);
+    const currentUserId = req.user?.id;
+    const currentProfile = req.user?.profile;
+
+    if (Number.isNaN(activityId)) {
+      res.status(400).json({ message: 'Invalid activity id' });
+      return;
+    }
+
+    if (!currentUserId || !currentProfile) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const isOperator = currentProfile === 'Operator';
+    const params: Array<number> = [activityId];
+    const ownerFilter = isOperator ? 'AND a.user_id = $2' : '';
+
+    if (isOperator) {
+      params.push(currentUserId);
+    }
+
+    const result = await pool.query(
+      `SELECT a.id, a.user_id, a.project_id, a.hours, a.tasks, a.activity_date, a.created_at,
+              u.name AS user_name, u.email AS user_email, p.name AS project_name,
+              STRING_AGG(DISTINCT r.name, ', ' ORDER BY r.name) AS role_names
+       FROM activities a
+       JOIN users u ON u.id = a.user_id
+       JOIN projects p ON p.id = a.project_id
+       LEFT JOIN user_roles ur ON ur.user_id = a.user_id
+       LEFT JOIN roles r ON r.id = ur.role_id
+       WHERE a.id = $1 ${ownerFilter} AND u.status = 'A'
+       GROUP BY a.id, u.name, u.email, p.name`,
+      params
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ message: 'Activity not found' });
+      return;
+    }
+
+    res.json(result.rows[0]);
+  } catch {
+    res.status(500).json({ message: 'Failed to fetch activity' });
+  }
+};
+
+export const updateActivity = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const activityId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(activityId)) {
+      res.status(400).json({ message: 'Invalid activity id' });
+      return;
+    }
+
+    const { project_id, hours, tasks, activity_date } = req.body;
+
+    const updates: string[] = [];
+    const values: Array<number | string> = [];
+
+    if (project_id !== undefined) {
+      updates.push(`project_id = $${updates.length + 1}`);
+      values.push(Number(project_id));
+    }
+    if (hours !== undefined) {
+      updates.push(`hours = $${updates.length + 1}`);
+      values.push(Number(hours));
+    }
+    if (tasks !== undefined) {
+      updates.push(`tasks = $${updates.length + 1}`);
+      values.push(tasks);
+    }
+    if (activity_date !== undefined) {
+      updates.push(`activity_date = $${updates.length + 1}`);
+      values.push(activity_date);
+    }
+
+    if (updates.length === 0) {
+      res.status(400).json({ message: 'No fields provided to update' });
+      return;
+    }
+
+    values.push(activityId);
+
+    const updateResult = await pool.query(
+      `UPDATE activities
+       SET ${updates.join(', ')}
+       WHERE id = $${updates.length + 1}
+       RETURNING *`,
+      values
+    );
+
+    if (updateResult.rows.length === 0) {
+      res.status(404).json({ message: 'Activity not found' });
+      return;
+    }
+
+    const result = await pool.query(
+      `SELECT a.id, a.user_id, a.project_id, a.hours, a.tasks, a.activity_date, a.created_at,
+              u.name AS user_name, u.email AS user_email, p.name AS project_name,
+              STRING_AGG(DISTINCT r.name, ', ' ORDER BY r.name) AS role_names
+       FROM activities a
+       JOIN users u ON u.id = a.user_id
+       JOIN projects p ON p.id = a.project_id
+       LEFT JOIN user_roles ur ON ur.user_id = a.user_id
+       LEFT JOIN roles r ON r.id = ur.role_id
+       WHERE a.id = $1 AND u.status = 'A'
+       GROUP BY a.id, u.name, u.email, p.name`,
+      [activityId]
+    );
+
+    res.json(result.rows[0]);
+  } catch {
+    res.status(500).json({ message: 'Failed to update activity' });
   }
 };

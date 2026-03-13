@@ -50,6 +50,7 @@
             <col class="w-40" />
             <col class="w-20" />
             <col />
+            <col *ngIf="isAdministrator" class="w-24" />
           </colgroup>
           <thead>
             <tr class="text-xs text-gray-400 uppercase tracking-wider">
@@ -58,6 +59,7 @@
               <th class="px-6 py-2 text-left font-medium">Role</th>
               <th class="px-6 py-2 text-left font-medium">Hours</th>
               <th class="px-6 py-2 text-left font-medium">Tasks</th>
+              <th *ngIf="isAdministrator" class="px-6 py-2 text-left font-medium">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
@@ -78,6 +80,15 @@
                 {{ entry.activity.hours | number:'1.1-2' }}
               </td>
               <td class="px-6 py-3 text-sm text-gray-600">{{ entry.activity.tasks }}</td>
+              <td *ngIf="isAdministrator" class="px-6 py-3 whitespace-nowrap text-sm">
+                <button
+                  type="button"
+                  (click)="navigateToEdit(entry.activity.id)"
+                  class="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Edit
+                </button>
+              </td>
             </tr>
           </tbody>
           <tfoot class="bg-gray-50 border-t border-gray-200">
@@ -89,6 +100,7 @@
                 {{ monthGroup.totalHours | number:'1.1-2' }}
               </td>
               <td></td>
+              <td *ngIf="isAdministrator"></td>
             </tr>
           </tfoot>
         </table>

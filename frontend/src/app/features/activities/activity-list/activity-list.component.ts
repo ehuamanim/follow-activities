@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ActivityService } from '../../../core/services/activity.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Activity } from '../../../shared/models';
 
 interface ActivityEntry {
@@ -30,15 +31,18 @@ interface UserGroup {
   templateUrl: './activity-list.component.html'
 })
 export class ActivityListComponent implements OnInit {
-  private activityService = inject(ActivityService);
-  private router = inject(Router);
+  private readonly activityService = inject(ActivityService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   activities: Activity[] = [];
   groupedActivities: UserGroup[] = [];
   loading = false;
   errorMessage = '';
+  isAdministrator = false;
 
   ngOnInit(): void {
+    this.isAdministrator = this.authService.isAdministrator();
     this.loadActivities();
   }
 
@@ -110,5 +114,9 @@ export class ActivityListComponent implements OnInit {
 
   navigateToCreate(): void {
     this.router.navigate(['/activities/new']);
+  }
+
+  navigateToEdit(activityId: number): void {
+    this.router.navigate(['/activities', activityId, 'edit']);
   }
 }

@@ -28,6 +28,12 @@ export const routes: Routes = [
       },
       { path: 'activities', component: ActivityListComponent },
       { path: 'activities/new', component: ActivityFormComponent },
+      {
+        path: 'activities/:id/edit',
+        component: ActivityFormComponent,
+        canActivate: [profileGuard],
+        data: { profiles: ['Administrator'] }
+      },
       { path: 'projects', component: ProjectListComponent },
       {
         path: 'projects/:id/team-report',
