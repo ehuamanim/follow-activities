@@ -40,6 +40,7 @@ export class ActivityListComponent implements OnInit {
   loading = false;
   errorMessage = '';
   isAdministrator = false;
+  deletingActivityId: number | null = null;
 
   ngOnInit(): void {
     this.isAdministrator = this.authService.isAdministrator();
@@ -118,5 +119,30 @@ export class ActivityListComponent implements OnInit {
 
   navigateToEdit(activityId: number): void {
     this.router.navigate(['/activities', activityId, 'edit']);
+  }
+
+  deleteActivity(activityId: number): void {
+    if (!this.isAdministrator || this.deletingActivityId !== null) {
+      return;
+    }
+
+    const confirmed = globalThis.confirm('Are you sure you want to delete this activity?');
+    if (!confirmed) {
+      return;
+    }
+
+    this.deletingActivityId = activityId;
+    this.errorMessage = '';
+
+    this.activityService.delete(activityId).subscribe({
+      next: () => {
+        this.deletingActivityId = null;
+        this.loadActivities();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Failed to delete activity.';
+        this.deletingActivityId = null;
+      }
+    });
   }
 }

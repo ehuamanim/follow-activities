@@ -6,6 +6,7 @@ import {
 	createActivityValidation,
 	updateActivity,
 	updateActivityValidation,
+	deleteActivity,
 } from '../controllers/activityController';
 import { authenticate, requireAdministrator } from '../middleware/authMiddleware';
 
@@ -17,5 +18,6 @@ router.get('/', getActivities);
 router.get('/:id', getActivityById);
 router.post('/', createActivityValidation, createActivity);
 router.put('/:id', requireAdministrator, updateActivityValidation, updateActivity);
+router.delete('/:id', requireAdministrator, deleteActivity);
 
 export default router;

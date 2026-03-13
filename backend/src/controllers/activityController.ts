@@ -204,3 +204,24 @@ export const updateActivity = async (req: AuthRequest, res: Response): Promise<v
     res.status(500).json({ message: 'Failed to update activity' });
   }
 };
+
+export const deleteActivity = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const activityId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(activityId)) {
+      res.status(400).json({ message: 'Invalid activity id' });
+      return;
+    }
+
+    const result = await pool.query('DELETE FROM activities WHERE id = $1 RETURNING id', [activityId]);
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ message: 'Activity not found' });
+      return;
+    }
+
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ message: 'Failed to delete activity' });
+  }
+};

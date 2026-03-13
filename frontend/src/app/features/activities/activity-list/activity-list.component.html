@@ -81,13 +81,23 @@
               </td>
               <td class="px-6 py-3 text-sm text-gray-600">{{ entry.activity.tasks }}</td>
               <td *ngIf="isAdministrator" class="px-6 py-3 whitespace-nowrap text-sm">
-                <button
-                  type="button"
-                  (click)="navigateToEdit(entry.activity.id)"
-                  class="text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  Edit
-                </button>
+                <div class="flex items-center gap-3">
+                  <button
+                    type="button"
+                    (click)="navigateToEdit(entry.activity.id)"
+                    class="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    (click)="deleteActivity(entry.activity.id)"
+                    [disabled]="deletingActivityId === entry.activity.id"
+                    class="text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                  >
+                    {{ deletingActivityId === entry.activity.id ? 'Deleting...' : 'Delete' }}
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
