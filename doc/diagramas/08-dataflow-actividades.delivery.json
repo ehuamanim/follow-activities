@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "73f6f1a8-909d-468a-b80e-3e5e168ced9f",
+  "status": "current",
+  "command": "deliver",
+  "type": "dataflow",
+  "input": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\dataflow-actividades-20261124-125415\\candidate.json",
+  "output": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\08-dataflow-actividades.html",
+  "specification": {
+    "sha256": "acbbb25c8c5c990605acf7ac63a0d3644d1ec197c4e74c2e3acdb2cd298f6dce",
+    "bytes": 4583
+  },
+  "artifact": {
+    "sha256": "3ba3e36722fcc42d32f2e2573e936bc1a7fbdb2fe2569765795203a835b7ac40",
+    "bytes": 847589
+  }
+}

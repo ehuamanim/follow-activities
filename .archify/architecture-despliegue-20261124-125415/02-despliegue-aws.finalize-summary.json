@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-despliegue-20261124-125415\\candidate.json",
+    "sha256": "e9929436d38bdcb2769dd48cc0fc61a3626bf62770abfac6dc93f6d5f8df85ae",
+    "bytes": 4952
+  },
+  "artifact": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\02-despliegue-aws.html",
+    "sha256": "3a09eb906310c1680b1dc828192c2c39f218999503560bf609b0a89119827ffd",
+    "bytes": 850706
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-despliegue-20261124-125415\\02-despliegue-aws.finalize.json",
+    "summaryReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-despliegue-20261124-125415\\02-despliegue-aws.finalize-summary.json",
+    "browserCheckReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-despliegue-20261124-125415\\02-despliegue-aws.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6086,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "routesOverSuggestedBends": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [],
+      "detours": [
+        {
+          "relationship": {
+            "from": "sam",
+            "to": "apifn",
+            "label": "esbuild entry",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "bends": 3,
+          "stretch": 1
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "sam → apifn needs 3 bends: move node sam or apifn so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  },
+  "layoutReviewRecommendation": {
+    "action": "inspect-leading-space",
+    "evidence": {
+      "measured": true,
+      "emptyTopPx": 126,
+      "emptyTopRatio": 0.211,
+      "occupiedTop": 126,
+      "viewBoxTop": 0,
+      "canvasHeight": 596,
+      "typicalNodeHeight": 58,
+      "reviewSuggested": true
+    },
+    "reason": "Measured content, including routes and labels, leaves a large empty area above the diagram. This is a composition suggestion, not a failed gate.",
+    "repair": "Check whether that leading space is intentional. If not, reposition the connected scene nearer the canvas origin while retaining room for its actual boundaries, labels and return routes. Preserve all meaning and user-fixed geometry, then rerun finalize. No screenshot is required."
+  }
+}

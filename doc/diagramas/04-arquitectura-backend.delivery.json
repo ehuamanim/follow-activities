@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "ca2417c1-66a8-429f-89ea-327d555c5829",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-backend-20261124-125415\\candidate.json",
+  "output": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\04-arquitectura-backend.html",
+  "specification": {
+    "sha256": "124d22f1f4fe5910f355dcc86db165556f5408b3dd4ca04797d2a75843dfd33e",
+    "bytes": 4764
+  },
+  "artifact": {
+    "sha256": "1e44c87359b830047110923c78e9e9a54c9062cd80f95b288154f1bfa03ca4b3",
+    "bytes": 848077
+  }
+}

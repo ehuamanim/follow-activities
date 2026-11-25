@@ -8,6 +8,7 @@ export interface ActivityFilters {
   userId?: number;
   startDate?: string;
   endDate?: string;
+  projectId?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,6 +27,9 @@ export class ActivityService {
     }
     if (filters?.endDate) {
       params = params.set('end_date', filters.endDate);
+    }
+    if (filters?.projectId !== undefined) {
+      params = params.set('project_id', filters.projectId);
     }
 
     return this.http.get<Activity[]>(`${this.apiUrl}/activities`, { params }).pipe(
@@ -55,5 +59,36 @@ export class ActivityService {
     return this.http.delete<void>(`${this.apiUrl}/activities/${id}`).pipe(
       catchError(err => throwError(() => err))
     );
+  }
+
+  copyPrevious(): Observable<Partial<Activity>> {
+    return this.http.get<Partial<Activity>>(`${this.apiUrl}/activities/copy-previous`).pipe(
+      catchError(err => throwError(() => err))
+    );
+  }
+
+  bulkCreate(items: Array<Partial<Activity>>): Observable<{ created: Activity[]; errors: Array<{ index: number; message: string }> }> {
+    return this.http.post<{ created: Activity[]; errors: Array<{ index: number; message: string }> }>(
+      `${this.apiUrl}/activities/bulk`,
+      { items }
+    ).pipe(catchError(err => throwError(() => err)));
+  }
+
+  reminderStatus(): Observable<{ enabled: boolean; missingDays: string[] }> {
+    return this.http.get<{ enabled: boolean; missingDays: string[] }>(
+      `${this.apiUrl}/activities/reminder-status`
+    ).pipe(catchError(err => throwError(() => err)));
+  }
+
+  downloadServerExcel(filters?: ActivityFilters & { projectIds?: number[] }): Observable<Blob> {
+    let params = new HttpParams();
+    if (filters?.userId !== undefined) params = params.set('user_id', filters.userId);
+    if (filters?.startDate) params = params.set('start_date', filters.startDate);
+    if (filters?.endDate) params = params.set('end_date', filters.endDate);
+    if (filters?.projectIds?.length) params = params.set('project_ids', filters.projectIds.join(','));
+    return this.http.get(`${this.apiUrl}/exports/activities.xlsx`, {
+      params,
+      responseType: 'blob'
+    }).pipe(catchError(err => throwError(() => err)));
   }
 }

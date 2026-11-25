@@ -1,57 +1,72 @@
 <div>
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
     <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
-    <div class="flex items-center gap-3">
-      <label for="period" class="text-sm font-medium text-gray-700">Period:</label>
-      <select
-        id="period"
-        [(ngModel)]="period"
-        (ngModelChange)="onPeriodChange()"
-        class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="week">This Week</option>
-        <option value="month">This Month</option>
-      </select>
+    <div class="flex flex-wrap items-end gap-3">
+      <div>
+        <label for="period" class="text-sm font-medium text-gray-700">Periodo</label>
+        <select id="period" [(ngModel)]="period" (ngModelChange)="onPeriodChange()" class="block border border-gray-300 rounded-md px-3 py-1.5 text-sm">
+          <option value="week">Esta semana</option>
+          <option value="month">Este mes</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700">Desde</label>
+        <input type="date" [(ngModel)]="startDate" class="block border border-gray-300 rounded-md px-3 py-1.5 text-sm" />
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700">Hasta</label>
+        <input type="date" [(ngModel)]="endDate" class="block border border-gray-300 rounded-md px-3 py-1.5 text-sm" />
+      </div>
+      <button type="button" (click)="applyCustomRange()" class="bg-blue-600 text-white text-sm font-semibold px-3 py-2 rounded-md">Rango custom</button>
     </div>
   </div>
 
-  <div *ngIf="errorMessage" class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
-    {{ errorMessage }}
-  </div>
-
-  <div *ngIf="loading" class="flex justify-center py-10">
-    <span class="text-gray-500">Loading dashboard...</span>
-  </div>
+  <div *ngIf="errorMessage" class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">{{ errorMessage }}</div>
+  <div *ngIf="loading" class="text-gray-500 py-10 text-center">Cargando dashboard...</div>
 
   <div *ngIf="!loading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="bg-white rounded-lg shadow p-6 col-span-3">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">Hours by Team Member</h2>
-      <canvas baseChart
-        [data]="teamChartData"
-        [options]="barChartOptions"
-        class="max-h-60"
-        type="bar">
-      </canvas>
+      <div class="flex justify-between mb-2">
+        <h2 class="text-lg font-semibold text-gray-700">Horas por integrante</h2>
+        <span class="text-sm font-medium text-blue-700">Total: {{ teamTotal | number:'1.1-2' }} h</span>
+      </div>
+      <canvas baseChart [data]="teamChartData" [options]="barChartOptions" class="max-h-60" type="bar"></canvas>
     </div>
-
     <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">Hours by Project</h2>
-      <canvas baseChart
-        [data]="projectChartData"
-        [options]="barChartOptions"
-        class="max-h-60"
-        type="bar">
-      </canvas>
+      <div class="flex justify-between mb-2">
+        <h2 class="text-lg font-semibold text-gray-700">Horas por proyecto</h2>
+        <span class="text-sm font-medium text-emerald-700">Total: {{ projectTotal | number:'1.1-2' }} h</span>
+      </div>
+      <canvas baseChart [data]="projectChartData" [options]="barChartOptions" class="max-h-60" type="bar"></canvas>
     </div>
-
     <div class="bg-white rounded-lg shadow p-6 col-span-2">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">Hours by Role</h2>
-      <canvas baseChart
-        [data]="roleChartData"
-        [options]="barChartOptions"
-        class="max-h-60"
-        type="bar">
-      </canvas>
+      <div class="flex justify-between mb-2">
+        <h2 class="text-lg font-semibold text-gray-700">Horas por rol</h2>
+        <span class="text-sm font-medium text-amber-700">Total: {{ roleTotal | number:'1.1-2' }} h</span>
+      </div>
+      <canvas baseChart [data]="roleChartData" [options]="barChartOptions" class="max-h-60" type="bar"></canvas>
     </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6 mt-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">Comparativo periodo A vs B</h2>
+    <div class="flex flex-wrap gap-3 items-end mb-4">
+      <div><label class="text-xs text-gray-500">A desde</label><input type="date" [(ngModel)]="aStart" class="block border rounded px-2 py-1" /></div>
+      <div><label class="text-xs text-gray-500">A hasta</label><input type="date" [(ngModel)]="aEnd" class="block border rounded px-2 py-1" /></div>
+      <div><label class="text-xs text-gray-500">B desde</label><input type="date" [(ngModel)]="bStart" class="block border rounded px-2 py-1" /></div>
+      <div><label class="text-xs text-gray-500">B hasta</label><input type="date" [(ngModel)]="bEnd" class="block border rounded px-2 py-1" /></div>
+      <button type="button" (click)="loadCompare()" class="bg-gray-800 text-white px-3 py-2 rounded text-sm">Comparar</button>
+    </div>
+    <table *ngIf="compareRows.length" class="min-w-full text-sm">
+      <thead><tr class="text-left text-gray-500"><th class="py-2">Proyecto</th><th>Horas A</th><th>Horas B</th><th>Delta</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let row of compareRows" class="border-t">
+          <td class="py-2">{{ row.project_name }}</td>
+          <td>{{ row.hours_a | number:'1.1-2' }}</td>
+          <td>{{ row.hours_b | number:'1.1-2' }}</td>
+          <td [class.text-green-700]="row.delta >= 0" [class.text-red-700]="row.delta < 0">{{ row.delta | number:'1.1-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>

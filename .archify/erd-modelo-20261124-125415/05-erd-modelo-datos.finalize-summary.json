@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "erd",
+  "quality": "standard",
+  "specification": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\erd-modelo-20261124-125415\\candidate.json",
+    "sha256": "e977e67cc163240dc4641cc3ea67bda3011eadd4d175aee644b69576d8b00aff",
+    "bytes": 4801
+  },
+  "artifact": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\05-erd-modelo-datos.html",
+    "sha256": "942c56968f029fbf848735b32d7ed99465ffa0b3f66debbe2faa983526744405",
+    "bytes": 858443
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\erd-modelo-20261124-125415\\05-erd-modelo-datos.finalize.json",
+    "summaryReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\erd-modelo-20261124-125415\\05-erd-modelo-datos.finalize-summary.json",
+    "browserCheckReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\erd-modelo-20261124-125415\\05-erd-modelo-datos.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5967,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

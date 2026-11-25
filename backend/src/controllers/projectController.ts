@@ -8,22 +8,74 @@ export const createProjectValidation = [
   body('name').notEmpty().withMessage('Project name is required'),
   body('description').optional().isString(),
   body('status').optional().isIn(['active', 'inactive', 'completed']).withMessage('Invalid status'),
+  body('budget_hours').optional().isFloat({ min: 0 }),
+  body('budget_cost').optional().isFloat({ min: 0 }),
   validate,
 ];
 
-export const getProjects = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const updateProjectValidation = [
+  body('name').optional().notEmpty().withMessage('Project name cannot be empty'),
+  body('description').optional().isString(),
+  body('status').optional().isIn(['active', 'inactive', 'completed']).withMessage('Invalid status'),
+  body('budget_hours').optional().isFloat({ min: 0 }),
+  body('budget_cost').optional().isFloat({ min: 0 }),
+  validate,
+];
+
+const projectSelect = `
+  SELECT p.*,
+    COALESCE((SELECT SUM(a.hours) FROM activities a WHERE a.project_id = p.id), 0) AS actual_hours,
+    COALESCE((
+      SELECT SUM(a.hours * u.cost_per_hour)
+      FROM activities a
+      JOIN users u ON u.id = a.user_id
+      WHERE a.project_id = p.id
+    ), 0) AS actual_cost
+  FROM projects p
+`;
+
+export const getProjects = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const result = await pool.query('SELECT * FROM projects ORDER BY created_at DESC');
+    const userId = req.user?.id;
+    const profile = req.user?.profile;
+    if (!userId || !profile) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const includeArchived = req.query.include_archived === 'true';
+    const statusFilter = includeArchived ? '' : `AND p.status = 'active'`;
+
+    if (profile === 'Administrator') {
+      const result = await pool.query(
+        `${projectSelect} WHERE 1=1 ${statusFilter} ORDER BY p.created_at DESC`
+      );
+      res.json(result.rows);
+      return;
+    }
+
+    const result = await pool.query(
+      `${projectSelect}
+       JOIN project_members pm ON pm.project_id = p.id
+       WHERE pm.user_id = $1 ${statusFilter}
+       ORDER BY p.created_at DESC`,
+      [userId]
+    );
     res.json(result.rows);
   } catch {
     res.status(500).json({ message: 'Failed to fetch projects' });
   }
 };
 
-export const getProject = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const getProject = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const projectId = _req.params.id;
-    const result = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId]);
+    const projectId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(projectId)) {
+      res.status(400).json({ message: 'Invalid project id' });
+      return;
+    }
+
+    const result = await pool.query(`${projectSelect} WHERE p.id = $1`, [projectId]);
     if (result.rows.length === 0) {
       res.status(404).json({ message: 'Project not found' });
       return;
@@ -36,14 +88,151 @@ export const getProject = async (_req: AuthRequest, res: Response): Promise<void
 
 export const createProject = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { name, description, status } = req.body;
+    const { name, description, status, budget_hours, budget_cost } = req.body;
     const result = await pool.query(
-      'INSERT INTO projects (name, description, status) VALUES ($1, $2, $3) RETURNING *',
-      [name, description ?? null, status ?? 'active']
+      `INSERT INTO projects (name, description, status, budget_hours, budget_cost)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [name, description ?? null, status ?? 'active', budget_hours ?? 0, budget_cost ?? 0]
     );
     res.status(201).json(result.rows[0]);
   } catch {
     res.status(500).json({ message: 'Failed to create project' });
+  }
+};
+
+export const updateProject = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projectId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(projectId)) {
+      res.status(400).json({ message: 'Invalid project id' });
+      return;
+    }
+
+    const { name, description, status, budget_hours, budget_cost } = req.body;
+    const updates: string[] = [];
+    const values: Array<string | number> = [];
+
+    const add = (column: string, value: string | number) => {
+      values.push(value);
+      updates.push(`${column} = $${values.length}`);
+    };
+
+    if (name !== undefined) add('name', name);
+    if (description !== undefined) add('description', description);
+    if (status !== undefined) add('status', status);
+    if (budget_hours !== undefined) add('budget_hours', Number(budget_hours));
+    if (budget_cost !== undefined) add('budget_cost', Number(budget_cost));
+
+    if (updates.length === 0) {
+      res.status(400).json({ message: 'No fields provided to update' });
+      return;
+    }
+
+    values.push(projectId);
+    const result = await pool.query(
+      `UPDATE projects SET ${updates.join(', ')} WHERE id = $${values.length} RETURNING *`,
+      values
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ message: 'Project not found' });
+      return;
+    }
+
+    res.json(result.rows[0]);
+  } catch {
+    res.status(500).json({ message: 'Failed to update project' });
+  }
+};
+
+export const archiveProject = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projectId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(projectId)) {
+      res.status(400).json({ message: 'Invalid project id' });
+      return;
+    }
+
+    const result = await pool.query(
+      `UPDATE projects SET status = 'inactive' WHERE id = $1 RETURNING *`,
+      [projectId]
+    );
+    if (result.rows.length === 0) {
+      res.status(404).json({ message: 'Project not found' });
+      return;
+    }
+    res.json(result.rows[0]);
+  } catch {
+    res.status(500).json({ message: 'Failed to archive project' });
+  }
+};
+
+export const getProjectMembers = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projectId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(projectId)) {
+      res.status(400).json({ message: 'Invalid project id' });
+      return;
+    }
+
+    const result = await pool.query(
+      `SELECT pm.project_id, pm.user_id, u.name, u.surnames, u.email
+       FROM project_members pm
+       JOIN users u ON u.id = pm.user_id
+       WHERE pm.project_id = $1 AND u.status = 'A'
+       ORDER BY u.surnames, u.name`,
+      [projectId]
+    );
+    res.json(result.rows);
+  } catch {
+    res.status(500).json({ message: 'Failed to fetch project members' });
+  }
+};
+
+export const addProjectMember = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projectId = Number.parseInt(req.params.id, 10);
+    const userId = Number(req.body.user_id);
+    if (Number.isNaN(projectId) || Number.isNaN(userId)) {
+      res.status(400).json({ message: 'Invalid project or user id' });
+      return;
+    }
+
+    await pool.query(
+      `INSERT INTO project_members (project_id, user_id) VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [projectId, userId]
+    );
+
+    const result = await pool.query(
+      `SELECT pm.project_id, pm.user_id, u.name, u.surnames, u.email
+       FROM project_members pm
+       JOIN users u ON u.id = pm.user_id
+       WHERE pm.project_id = $1 AND pm.user_id = $2`,
+      [projectId, userId]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch {
+    res.status(500).json({ message: 'Failed to add project member' });
+  }
+};
+
+export const removeProjectMember = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projectId = Number.parseInt(req.params.id, 10);
+    const userId = Number.parseInt(req.params.userId, 10);
+    if (Number.isNaN(projectId) || Number.isNaN(userId)) {
+      res.status(400).json({ message: 'Invalid project or user id' });
+      return;
+    }
+
+    await pool.query(
+      `DELETE FROM project_members WHERE project_id = $1 AND user_id = $2`,
+      [projectId, userId]
+    );
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ message: 'Failed to remove project member' });
   }
 };
 
@@ -57,7 +246,7 @@ export const getActivitiesReport = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    const params: (number)[] = [projectId];
+    const params: number[] = [projectId];
     let userFilter = '';
 
     if (userId !== null && !Number.isNaN(userId)) {
@@ -75,14 +264,14 @@ export const getActivitiesReport = async (req: AuthRequest, res: Response): Prom
        ),
        hours_by_month AS (
          SELECT a.user_id,
-                EXTRACT(MONTH FROM a.created_at)::int AS month,
-                EXTRACT(YEAR FROM a.created_at)::int AS year,
+                EXTRACT(MONTH FROM a.activity_date)::int AS month,
+                EXTRACT(YEAR FROM a.activity_date)::int AS year,
                 SUM(a.hours) AS total_hours
          FROM activities a
          WHERE a.project_id = $1 ${userFilter}
          GROUP BY a.user_id,
-                  EXTRACT(MONTH FROM a.created_at),
-                  EXTRACT(YEAR FROM a.created_at)
+                  EXTRACT(MONTH FROM a.activity_date),
+                  EXTRACT(YEAR FROM a.activity_date)
        )
        SELECT p.name AS project_name,
               u.id AS user_id,
@@ -109,6 +298,7 @@ export const getActivitiesReport = async (req: AuthRequest, res: Response): Prom
 
 export const getProjectCostReport = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const projectIdsRaw = typeof req.query['project_ids'] === 'string' ? req.query['project_ids'] : null;
     const projectId = req.query['project_id'] ? Number.parseInt(req.query['project_id'] as string, 10) : null;
     const startDate = typeof req.query['start_date'] === 'string' ? req.query['start_date'] : null;
     const endDate = typeof req.query['end_date'] === 'string' ? req.query['end_date'] : null;
@@ -116,12 +306,21 @@ export const getProjectCostReport = async (req: AuthRequest, res: Response): Pro
     const params: Array<number | string> = [];
     const filters = [`u.status = 'A'`];
 
-    if (projectId !== null) {
+    if (projectIdsRaw) {
+      const ids = projectIdsRaw
+        .split(',')
+        .map((id) => Number.parseInt(id.trim(), 10))
+        .filter((id) => !Number.isNaN(id));
+      if (ids.length > 0) {
+        params.push(...ids);
+        const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+        filters.push(`a.project_id IN (${placeholders})`);
+      }
+    } else if (projectId !== null) {
       if (Number.isNaN(projectId)) {
         res.status(400).json({ message: 'Invalid project id' });
         return;
       }
-
       params.push(projectId);
       filters.push(`a.project_id = $${params.length}`);
     }
@@ -192,8 +391,8 @@ export const getProjectTeamReport = async (req: AuthRequest, res: Response): Pro
        LEFT JOIN activities a
          ON a.user_id = u.id
          AND a.project_id = $1
-         AND EXTRACT(MONTH FROM a.created_at) = $2
-         AND EXTRACT(YEAR FROM a.created_at) = $3
+         AND EXTRACT(MONTH FROM a.activity_date) = $2
+         AND EXTRACT(YEAR FROM a.activity_date) = $3
        WHERE u.status = 'A'
        GROUP BY u.id, u.name, u.surnames, r.name
        ORDER BY u.name, u.surnames`,

@@ -1,11 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ActivityFilters, ActivityService } from '../../../core/services/activity.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
+import { TimerService } from '../../../core/services/timer.service';
 import { Activity, User } from '../../../shared/models';
+import { FechaPePipe } from '../../../shared/pipes/fecha-pe.pipe';
+import { formatFechaPe } from '../../../shared/utils/fecha';
 
 interface ActivityEntry {
   activity: Activity;
@@ -13,8 +16,8 @@ interface ActivityEntry {
 }
 
 interface MonthGroup {
-  monthKey: string;        // e.g. '2026-03'
-  monthLabel: string;      // e.g. 'March 2026'
+  monthKey: string;
+  monthLabel: string;
   entries: ActivityEntry[];
   totalHours: number;
 }
@@ -33,10 +36,12 @@ interface ActivityIndicators {
   totalCost: number;
 }
 
+const PAGE_SIZE = 20;
+
 @Component({
   selector: 'app-activity-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FechaPePipe],
   templateUrl: './activity-list.component.html'
 })
 export class ActivityListComponent implements OnInit {
@@ -44,15 +49,25 @@ export class ActivityListComponent implements OnInit {
   private readonly activityService = inject(ActivityService);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly timerService = inject(TimerService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   activities: Activity[] = [];
   groupedActivities: UserGroup[] = [];
+  pagedGroups: UserGroup[] = [];
   users: User[] = [];
   loading = false;
   errorMessage = '';
   isAdministrator = false;
   deletingActivityId: number | null = null;
+  page = 1;
+  totalPages = 1;
+  reminderDays: string[] = [];
+  remindersEnabled = false;
+  timerRunning = false;
+  bulkMessage = '';
+
   indicators: ActivityIndicators = {
     totalActivities: 0,
     uniqueProjects: 0,
@@ -61,6 +76,7 @@ export class ActivityListComponent implements OnInit {
   };
 
   readonly currentUser = this.authService.getCurrentUser();
+  readonly pageSize = PAGE_SIZE;
 
   readonly filtersForm = this.fb.group({
     user_id: [null as number | null],
@@ -70,35 +86,50 @@ export class ActivityListComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdministrator = this.authService.isAdministrator();
+    this.timerRunning = this.timerService.isRunning();
+    this.loadReminder();
 
-    if (this.isAdministrator && this.currentUser?.id) {
-      this.filtersForm.patchValue({ user_id: this.currentUser.id });
-      this.loadUsers();
-      return;
-    }
+    this.route.queryParamMap.subscribe((params) => {
+      const userId = params.get('user_id');
+      const start = params.get('start_date') || '';
+      const end = params.get('end_date') || '';
+      const page = Number(params.get('page') || '1');
 
-    this.loadActivities();
+      this.filtersForm.patchValue({
+        user_id: userId ? Number(userId) : (this.isAdministrator ? (this.currentUser?.id ?? null) : null),
+        start_date: start,
+        end_date: end
+      }, { emitEvent: false });
+
+      this.page = Number.isNaN(page) || page < 1 ? 1 : page;
+
+      if (this.isAdministrator && this.users.length === 0) {
+        this.loadUsers();
+        return;
+      }
+      this.loadActivities();
+    });
   }
 
   loadActivities(): void {
     const startDate = this.filtersForm.value.start_date || undefined;
     const endDate = this.filtersForm.value.end_date || undefined;
+    const projectIdParam = this.route.snapshot.queryParamMap.get('project_id');
 
     if (startDate && endDate && startDate > endDate) {
-      this.errorMessage = 'Initial date must be earlier than or equal to final date.';
+      this.errorMessage = 'La fecha inicial debe ser menor o igual a la final.';
       return;
     }
 
     this.loading = true;
     this.errorMessage = '';
 
-    const filters: ActivityFilters = {
-      startDate,
-      endDate
-    };
-
+    const filters: ActivityFilters = { startDate, endDate };
     if (this.isAdministrator && this.filtersForm.value.user_id !== null) {
       filters.userId = this.filtersForm.value.user_id;
+    }
+    if (projectIdParam) {
+      filters.projectId = Number(projectIdParam);
     }
 
     this.activityService.getAll(filters).subscribe({
@@ -106,81 +137,23 @@ export class ActivityListComponent implements OnInit {
         this.activities = data;
         this.groupedActivities = this.groupActivities(data);
         this.indicators = this.buildIndicators(data);
+        this.applyPagination();
         this.loading = false;
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to load activities.';
+        this.errorMessage = err?.error?.message || 'No se pudieron cargar las actividades.';
         this.loading = false;
       }
     });
   }
 
   applyFilters(): void {
-    this.loadActivities();
-  }
-
-  downloadFilteredActivitiesExcel(): void {
-    if (this.activities.length === 0) {
-      return;
-    }
-
-    const rows = this.activities
-      .map((activity) => {
-        const date = activity.activity_date || activity.created_at?.split('T')[0] || '';
-        const userName = activity.user_name || activity.user?.name || `User #${activity.user_id}`;
-        const projectName = activity.project_name || activity.project?.name || String(activity.project_id);
-        const roleNames = activity.role_names || 'No role';
-        const hours = Number(activity.hours);
-        const costPerHour = Number(activity.user_cost_per_hour ?? 0);
-        const totalCost = hours * costPerHour;
-
-        return `
-      <Row>
-        <Cell><Data ss:Type="String">${this.escapeXml(date)}</Data></Cell>
-        <Cell><Data ss:Type="String">${this.escapeXml(userName)}</Data></Cell>
-        <Cell><Data ss:Type="String">${this.escapeXml(projectName)}</Data></Cell>
-        <Cell><Data ss:Type="String">${this.escapeXml(roleNames)}</Data></Cell>
-        <Cell><Data ss:Type="Number">${hours}</Data></Cell>
-        <Cell><Data ss:Type="Number">${costPerHour}</Data></Cell>
-        <Cell><Data ss:Type="Number">${totalCost}</Data></Cell>
-        <Cell><Data ss:Type="String">${this.escapeXml(activity.tasks || '')}</Data></Cell>
-      </Row>`;
-      })
-      .join('');
-
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-  <Worksheet ss:Name="Activities">
-    <Table>
-      <Row>
-        <Cell><Data ss:Type="String">Date</Data></Cell>
-        <Cell><Data ss:Type="String">User</Data></Cell>
-        <Cell><Data ss:Type="String">Project</Data></Cell>
-        <Cell><Data ss:Type="String">Role</Data></Cell>
-        <Cell><Data ss:Type="String">Hours</Data></Cell>
-        <Cell><Data ss:Type="String">User Cost Per Hour</Data></Cell>
-        <Cell><Data ss:Type="String">Total Cost</Data></Cell>
-        <Cell><Data ss:Type="String">Tasks</Data></Cell>
-      </Row>
-      ${rows}
-    </Table>
-  </Worksheet>
-</Workbook>`;
-
-    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'activities-filtered-report.xls';
-    a.click();
-    URL.revokeObjectURL(url);
+    this.syncQuery(1);
   }
 
   clearDateFilters(): void {
     this.filtersForm.patchValue({ start_date: '', end_date: '' });
-    this.loadActivities();
+    this.syncQuery(1);
   }
 
   resetFilters(): void {
@@ -189,11 +162,161 @@ export class ActivityListComponent implements OnInit {
       start_date: '',
       end_date: ''
     });
-    this.loadActivities();
+    this.syncQuery(1);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.syncQuery(page);
+  }
+
+  private syncQuery(page: number): void {
+    const query: Record<string, string> = { page: String(page) };
+    const userId = this.filtersForm.value.user_id;
+    const start = this.filtersForm.value.start_date;
+    const end = this.filtersForm.value.end_date;
+    if (userId !== null && userId !== undefined) query['user_id'] = String(userId);
+    if (start) query['start_date'] = start;
+    if (end) query['end_date'] = end;
+    const projectId = this.route.snapshot.queryParamMap.get('project_id');
+    if (projectId) query['project_id'] = projectId;
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: query
+    });
+  }
+
+  private applyPagination(): void {
+    const flat = this.flattenEntries(this.groupedActivities);
+    this.totalPages = Math.max(1, Math.ceil(flat.length / PAGE_SIZE));
+    if (this.page > this.totalPages) this.page = this.totalPages;
+    const start = (this.page - 1) * PAGE_SIZE;
+    const slice = flat.slice(start, start + PAGE_SIZE);
+    this.pagedGroups = this.rebuildGroups(slice);
+  }
+
+  private flattenEntries(groups: UserGroup[]): Array<{ userName: string; userId: number; month: MonthGroup; entry: ActivityEntry }> {
+    const rows: Array<{ userName: string; userId: number; month: MonthGroup; entry: ActivityEntry }> = [];
+    for (const g of groups) {
+      for (const m of g.months) {
+        for (const e of m.entries) {
+          rows.push({ userName: g.userName, userId: g.userId, month: m, entry: e });
+        }
+      }
+    }
+    return rows;
+  }
+
+  private rebuildGroups(
+    rows: Array<{ userName: string; userId: number; month: MonthGroup; entry: ActivityEntry }>
+  ): UserGroup[] {
+    const map = new Map<string, UserGroup>();
+    for (const row of rows) {
+      if (!map.has(row.userName)) {
+        map.set(row.userName, { userName: row.userName, userId: row.userId, months: [], totalHours: 0 });
+      }
+      const user = map.get(row.userName)!;
+      let month = user.months.find((m) => m.monthKey === row.month.monthKey);
+      if (!month) {
+        month = { ...row.month, entries: [], totalHours: 0 };
+        user.months.push(month);
+      }
+      month.entries.push(row.entry);
+      month.totalHours += Number(row.entry.activity.hours);
+      user.totalHours += Number(row.entry.activity.hours);
+    }
+    return Array.from(map.values());
+  }
+
+  downloadFilteredActivitiesExcel(): void {
+    const startDate = this.filtersForm.value.start_date || undefined;
+    const endDate = this.filtersForm.value.end_date || undefined;
+    const filters: ActivityFilters = { startDate, endDate };
+    if (this.isAdministrator && this.filtersForm.value.user_id !== null) {
+      filters.userId = this.filtersForm.value.user_id ?? undefined;
+    }
+
+    this.activityService.downloadServerExcel(filters).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'actividades.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.errorMessage = 'No se pudo descargar el Excel del servidor.';
+      }
+    });
+  }
+
+  onBulkFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result || '');
+      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const items: Array<Partial<Activity>> = [];
+      for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        if (i === 0 && /project/i.test(line)) continue;
+        const [project_id, hours, activity_date, ...taskParts] = line.split(',');
+        items.push({
+          project_id: Number(project_id),
+          hours: Number(hours),
+          activity_date: activity_date || undefined,
+          tasks: taskParts.join(',').replaceAll('"', '').trim()
+        });
+      }
+
+      this.activityService.bulkCreate(items).subscribe({
+        next: (res) => {
+          this.bulkMessage = `Creadas: ${res.created.length}. Errores: ${res.errors.length}.`;
+          this.loadActivities();
+        },
+        error: (err) => {
+          this.errorMessage = err?.error?.message || 'Error en carga masiva.';
+        }
+      });
+    };
+    reader.readAsText(file);
+    input.value = '';
+  }
+
+  toggleTimer(): void {
+    if (this.timerService.isRunning()) {
+      const stopped = this.timerService.stop();
+      this.timerRunning = false;
+      if (stopped) {
+        void this.router.navigate(['/activities/new'], {
+          queryParams: {
+            hours: stopped.hours,
+            project_id: stopped.state.projectId || undefined,
+            tasks: stopped.state.note || undefined
+          }
+        });
+      }
+      return;
+    }
+    this.timerService.start(null, '');
+    this.timerRunning = true;
+  }
+
+  private loadReminder(): void {
+    this.activityService.reminderStatus().subscribe({
+      next: (status) => {
+        this.remindersEnabled = status.enabled;
+        this.reminderDays = status.missingDays.map(formatFechaPe);
+      }
+    });
   }
 
   private groupActivities(activities: Activity[]): UserGroup[] {
-    // user key -> month key -> activity[]
     const userMap = new Map<string, Map<string, Activity[]>>();
     const userIdMap = new Map<string, number>();
 
@@ -205,7 +328,6 @@ export class ActivityListComponent implements OnInit {
       if (!userMap.has(userName)) userMap.set(userName, new Map());
       userIdMap.set(userName, activity.user_id);
       const monthMap = userMap.get(userName)!;
-
       if (!monthMap.has(monthKey)) monthMap.set(monthKey, []);
       monthMap.get(monthKey)!.push(activity);
     }
@@ -223,7 +345,7 @@ export class ActivityListComponent implements OnInit {
             });
             const [year, month] = monthKey.split('-').map(Number);
             const monthLabel = new Date(year, month - 1, 1)
-              .toLocaleString('default', { month: 'long', year: 'numeric' });
+              .toLocaleString('es-PE', { month: 'long', year: 'numeric' });
             return {
               monthKey,
               monthLabel,
@@ -247,7 +369,6 @@ export class ActivityListComponent implements OnInit {
     const projectKeys = new Set(
       activities.map(activity => activity.project_name || String(activity.project_id))
     );
-
     return {
       totalActivities: activities.length,
       uniqueProjects: projectKeys.size,
@@ -266,48 +387,31 @@ export class ActivityListComponent implements OnInit {
         this.loadActivities();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to load users.';
+        this.errorMessage = err?.error?.message || 'No se pudieron cargar usuarios.';
       }
     });
   }
 
-  private escapeXml(value: string): string {
-    return value
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&apos;');
-  }
-
   navigateToCreate(): void {
-    this.router.navigate(['/activities/new']);
+    void this.router.navigate(['/activities/new']);
   }
 
   navigateToEdit(activityId: number): void {
-    this.router.navigate(['/activities', activityId, 'edit']);
+    void this.router.navigate(['/activities', activityId, 'edit']);
   }
 
   deleteActivity(activityId: number): void {
-    if (!this.isAdministrator || this.deletingActivityId !== null) {
-      return;
-    }
-
-    const confirmed = globalThis.confirm('Are you sure you want to delete this activity?');
-    if (!confirmed) {
-      return;
-    }
+    if (!this.isAdministrator || this.deletingActivityId !== null) return;
+    if (!globalThis.confirm('¿Eliminar esta actividad?')) return;
 
     this.deletingActivityId = activityId;
-    this.errorMessage = '';
-
     this.activityService.delete(activityId).subscribe({
       next: () => {
         this.deletingActivityId = null;
         this.loadActivities();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to delete activity.';
+        this.errorMessage = err?.error?.message || 'No se pudo eliminar.';
         this.deletingActivityId = null;
       }
     });

@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Frontend Angular — capas y módulos",
+    "locale": "es",
+    "output": "doc/diagramas/03-arquitectura-frontend.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ehuamanim/follow-activities",
+      "revision": "ebe2a2711ea9672526fd99bed730c895a5b53377"
+    }
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Usuario",
+      "sublabel": "navegador",
+      "pos": [40, 280],
+      "size": [110, 54]
+    },
+    {
+      "id": "routes",
+      "type": "frontend",
+      "label": "app.routes",
+      "sublabel": "Router + guards",
+      "pos": [210, 280],
+      "size": [140, 60],
+      "sources": [{ "path": "frontend/src/app/app.routes.ts", "line": 16, "end_line": 72 }]
+    },
+    {
+      "id": "layout",
+      "type": "frontend",
+      "label": "Layout + Navbar",
+      "sublabel": "shell autenticado",
+      "pos": [400, 280],
+      "size": [150, 60],
+      "sources": [
+        { "path": "frontend/src/app/shared/components/layout/layout.component.ts", "line": 1, "end_line": 11 },
+        { "path": "frontend/src/app/shared/components/navbar/navbar.component.ts", "line": 1, "end_line": 27 }
+      ]
+    },
+    {
+      "id": "features",
+      "type": "frontend",
+      "label": "Features",
+      "sublabel": "activities/projects/…",
+      "pos": [610, 180],
+      "size": [150, 60],
+      "sources": [{ "path": "frontend/src/app/features/activities/activity-list/activity-list.component.ts", "line": 42, "end_line": 70 }]
+    },
+    {
+      "id": "admin_ui",
+      "type": "frontend",
+      "label": "Admin UI",
+      "sublabel": "dashboard/users/reports",
+      "pos": [610, 380],
+      "size": [150, 60],
+      "sources": [
+        { "path": "frontend/src/app/features/dashboard/dashboard.component.ts", "line": 16, "end_line": 57 },
+        { "path": "frontend/src/app/features/users/user-admin.component.ts", "line": 1, "end_line": 30 }
+      ]
+    },
+    {
+      "id": "guards",
+      "type": "security",
+      "label": "Guards",
+      "sublabel": "auth + profile",
+      "pos": [210, 120],
+      "size": [140, 54],
+      "sources": [
+        { "path": "frontend/src/app/core/guards/auth.guard.ts", "line": 1, "end_line": 12 },
+        { "path": "frontend/src/app/core/guards/profile.guard.ts", "line": 1, "end_line": 18 }
+      ]
+    },
+    {
+      "id": "http",
+      "type": "backend",
+      "label": "HttpClient",
+      "sublabel": "+ authInterceptor",
+      "pos": [810, 280],
+      "size": [150, 60],
+      "sources": [
+        { "path": "frontend/src/app/core/interceptors/auth.interceptor.ts", "line": 1, "end_line": 16 },
+        { "path": "frontend/src/app/app.config.ts", "line": 1, "end_line": 16 }
+      ]
+    },
+    {
+      "id": "services",
+      "type": "backend",
+      "label": "Core services",
+      "sublabel": "auth/activity/…",
+      "pos": [610, 280],
+      "size": [150, 60],
+      "sources": [
+        { "path": "frontend/src/app/core/services/auth.service.ts", "line": 8, "end_line": 66 },
+        { "path": "frontend/src/app/core/services/activity.service.ts", "line": 1, "end_line": 40 }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "cloud",
+      "label": "API REST",
+      "sublabel": "environment.apiUrl",
+      "pos": [1010, 280],
+      "size": [130, 60],
+      "sources": [{ "path": "frontend/src/environments/environment.ts", "line": 1, "end_line": 4 }]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "frontend/src/app",
+      "wraps": ["routes", "layout", "features", "admin_ui", "guards", "http", "services"],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    { "from": "user", "to": "routes", "label": "navega", "variant": "emphasis" },
+    { "from": "routes", "to": "guards", "label": "canActivate", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "routes", "to": "layout", "label": "shell /", "variant": "emphasis" },
+    { "from": "layout", "to": "features", "label": "router-outlet", "fromSide": "top", "toSide": "left" },
+    { "from": "layout", "to": "admin_ui", "label": "solo Admin", "variant": "security", "fromSide": "bottom", "toSide": "left" },
+    { "from": "features", "to": "services", "label": "inject()", "fromSide": "bottom", "toSide": "top" },
+    { "from": "admin_ui", "to": "services", "label": "inject()", "fromSide": "top", "toSide": "bottom" },
+    { "from": "services", "to": "http", "label": "RxJS HTTP", "variant": "emphasis" },
+    { "from": "http", "to": "api", "label": "Bearer JWT", "variant": "security" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Patrón",
+      "items": [
+        "Componentes standalone (sin NgModules de dominio)",
+        "Estado de sesión en localStorage vía AuthService",
+        "UI con Tailwind; charts con Chart.js / ng2-charts"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Autorización UI",
+      "items": [
+        "authGuard protege el layout autenticado",
+        "profileGuard exige Administrator en dashboard/users/reports",
+        "Navbar oculta enlaces admin si no aplica el perfil"
+      ]
+    }
+  ]
+}

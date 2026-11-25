@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-backend-20261124-125415\\candidate.json",
+    "sha256": "124d22f1f4fe5910f355dcc86db165556f5408b3dd4ca04797d2a75843dfd33e",
+    "bytes": 4764
+  },
+  "artifact": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\04-arquitectura-backend.html",
+    "sha256": "1e44c87359b830047110923c78e9e9a54c9062cd80f95b288154f1bfa03ca4b3",
+    "bytes": 848077
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-backend-20261124-125415\\04-arquitectura-backend.finalize.json",
+    "summaryReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-backend-20261124-125415\\04-arquitectura-backend.finalize-summary.json",
+    "browserCheckReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-backend-20261124-125415\\04-arquitectura-backend.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5854,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

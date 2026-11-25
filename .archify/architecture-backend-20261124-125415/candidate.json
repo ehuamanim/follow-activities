@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Backend Express — capas API",
+    "locale": "es",
+    "output": "doc/diagramas/04-arquitectura-backend.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ehuamanim/follow-activities",
+      "revision": "ebe2a2711ea9672526fd99bed730c895a5b53377"
+    }
+  },
+  "components": [
+    {
+      "id": "client",
+      "type": "external",
+      "label": "Cliente HTTP",
+      "sublabel": "SPA / curl",
+      "pos": [40, 280],
+      "size": [120, 54]
+    },
+    {
+      "id": "entry",
+      "type": "backend",
+      "label": "Entrada",
+      "sublabel": "server | lambda",
+      "pos": [210, 280],
+      "size": [140, 60],
+      "sources": [
+        { "path": "backend/src/server.ts", "line": 1, "end_line": 7 },
+        { "path": "backend/src/lambda.ts", "line": 1, "end_line": 15 }
+      ]
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "app.ts",
+      "sublabel": "CORS + rate limit",
+      "pos": [400, 280],
+      "size": [140, 60],
+      "sources": [{ "path": "backend/src/app.ts", "line": 15, "end_line": 137 }]
+    },
+    {
+      "id": "routes",
+      "type": "backend",
+      "label": "Routes",
+      "sublabel": "/api/* routers",
+      "pos": [580, 280],
+      "size": [140, 60],
+      "sources": [
+        { "path": "backend/src/routes/activityRoutes.ts", "line": 13, "end_line": 21 },
+        { "path": "backend/src/routes/userRoutes.ts", "line": 16, "end_line": 27 }
+      ]
+    },
+    {
+      "id": "mw",
+      "type": "security",
+      "label": "Middleware",
+      "sublabel": "auth + validate",
+      "pos": [580, 130],
+      "size": [140, 58],
+      "sources": [
+        { "path": "backend/src/middleware/authMiddleware.ts", "line": 9, "end_line": 58 },
+        { "path": "backend/src/middleware/validationMiddleware.ts", "line": 1, "end_line": 11 }
+      ]
+    },
+    {
+      "id": "ctrl",
+      "type": "backend",
+      "label": "Controllers",
+      "sublabel": "HTTP handlers",
+      "pos": [760, 280],
+      "size": [140, 60],
+      "sources": [
+        { "path": "backend/src/controllers/activityController.ts", "line": 23, "end_line": 76 },
+        { "path": "backend/src/controllers/authController.ts", "line": 1, "end_line": 40 }
+      ]
+    },
+    {
+      "id": "svc",
+      "type": "backend",
+      "label": "Services",
+      "sublabel": "auth + dashboard",
+      "pos": [760, 420],
+      "size": [140, 58],
+      "sources": [
+        { "path": "backend/src/services/authService.ts", "line": 8, "end_line": 68 },
+        { "path": "backend/src/services/dashboardService.ts", "line": 1, "end_line": 60 }
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "pg Pool",
+      "sublabel": "PostgreSQL",
+      "pos": [950, 280],
+      "size": [130, 60],
+      "sources": [{ "path": "backend/src/config/database.ts", "line": 9, "end_line": 28 }]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "backend/src",
+      "wraps": ["entry", "app", "routes", "mw", "ctrl", "svc", "db"],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    { "from": "client", "to": "entry", "label": "HTTP", "variant": "emphasis" },
+    { "from": "entry", "to": "app", "label": "Express app", "variant": "emphasis" },
+    { "from": "app", "to": "routes", "label": "mount /api", "variant": "emphasis" },
+    { "from": "routes", "to": "mw", "label": "authenticate", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "routes", "to": "ctrl", "label": "handler", "variant": "emphasis" },
+    { "from": "ctrl", "to": "svc", "label": "dominio", "fromSide": "bottom", "toSide": "top" },
+    { "from": "ctrl", "to": "db", "label": "SQL directo", "variant": "emphasis" },
+    { "from": "svc", "to": "db", "label": "SQL", "fromSide": "right", "toSide": "bottom" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Módulos API",
+      "items": [
+        "/api/auth, /users, /projects, /activities",
+        "/api/dashboard (solo Administrator)",
+        "/api/roles + /health"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Autorización",
+      "items": [
+        "Operator solo ve/crea sus actividades",
+        "Administrator edita/borra y administra usuarios",
+        "express-validator en create/update críticos"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Dual runtime",
+      "items": [
+        "Local: tsx watch → server.ts :3000",
+        "AWS: serverless-express sobre lambda.handler",
+        "Strip de stage /dev en URL serverless"
+      ]
+    }
+  ]
+}

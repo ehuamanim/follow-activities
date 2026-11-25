@@ -1,0 +1,25 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Calendario de actividades</h1>
+    <a routerLink="/activities" class="text-blue-600 hover:underline">Volver al listado</a>
+  </div>
+
+  <div class="flex items-center justify-between mb-4">
+    <button type="button" (click)="prev()" class="px-3 py-1.5 border rounded">←</button>
+    <h2 class="text-lg font-semibold capitalize">{{ monthLabel }}</h2>
+    <button type="button" (click)="next()" class="px-3 py-1.5 border rounded">→</button>
+  </div>
+
+  <div *ngIf="errorMessage" class="text-red-600 mb-3">{{ errorMessage }}</div>
+  <div *ngIf="loading" class="text-gray-500">Cargando...</div>
+
+  <div class="grid grid-cols-7 gap-2 text-sm">
+    <div *ngFor="let w of ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']" class="font-semibold text-gray-500 px-2">{{ w }}</div>
+    <div *ngFor="let day of days" class="min-h-24 border rounded p-2" [class.bg-gray-50]="!day.inMonth" [class.bg-white]="day.inMonth">
+      <div *ngIf="day.inMonth" class="font-medium text-gray-700 mb-1">{{ day.date | fechaPe }}</div>
+      <div *ngFor="let a of day.activities" class="text-xs bg-blue-50 text-blue-800 rounded px-1 py-0.5 mb-1 truncate" [title]="a.tasks">
+        {{ a.hours }}h · {{ a.project_name || a.project_id }}
+      </div>
+    </div>
+  </div>
+</div>

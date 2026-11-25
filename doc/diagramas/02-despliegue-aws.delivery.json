@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "a1cc3897-de76-4dc5-818d-d23986666a8f",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-despliegue-20261124-125415\\candidate.json",
+  "output": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\02-despliegue-aws.html",
+  "specification": {
+    "sha256": "e9929436d38bdcb2769dd48cc0fc61a3626bf62770abfac6dc93f6d5f8df85ae",
+    "bytes": 4952
+  },
+  "artifact": {
+    "sha256": "3a09eb906310c1680b1dc828192c2c39f218999503560bf609b0a89119827ffd",
+    "bytes": 850706
+  }
+}

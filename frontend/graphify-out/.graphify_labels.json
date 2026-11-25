@@ -1,0 +1,22 @@
+{
+  "0": "app.routes.ts",
+  "1": "index.ts",
+  "2": "activity-list.component.ts",
+  "3": "follow-activities",
+  "4": "dependencies",
+  "5": "devDependencies",
+  "6": "compilerOptions",
+  "7": "ActivityFormComponent",
+  "8": "ActivityListComponent",
+  "9": "DashboardComponent",
+  "10": "NavbarComponent",
+  "11": "options",
+  "12": "ProjectListComponent",
+  "13": "UserAdminComponent",
+  "14": "tsconfig.app.json",
+  "15": "app.config.ts",
+  "16": "TimerService",
+  "17": "environment.prod.ts",
+  "18": "tailwind.config.js",
+  "19": "tailwindcss"
+}

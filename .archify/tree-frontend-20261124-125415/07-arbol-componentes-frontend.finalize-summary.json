@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "tree",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\tree-frontend-20261124-125415\\candidate.json",
+    "sha256": "e44daddd08b8bd10280f00a7349ee7d08ba0a3211e2ac678f88607ecdb056a43",
+    "bytes": 3511
+  },
+  "artifact": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\07-arbol-componentes-frontend.html",
+    "sha256": "8643aa943061d8a068364322f427a23423cbe2fc4bc06009c6a6336d8696674f",
+    "bytes": 856957
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\tree-frontend-20261124-125415\\07-arbol-componentes-frontend.finalize.json",
+    "summaryReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\tree-frontend-20261124-125415\\07-arbol-componentes-frontend.finalize-summary.json",
+    "browserCheckReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\tree-frontend-20261124-125415\\07-arbol-componentes-frontend.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5899,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

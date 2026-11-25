@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "dataflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\dataflow-actividades-20261124-125415\\candidate.json",
+    "sha256": "acbbb25c8c5c990605acf7ac63a0d3644d1ec197c4e74c2e3acdb2cd298f6dce",
+    "bytes": 4583
+  },
+  "artifact": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\08-dataflow-actividades.html",
+    "sha256": "3ba3e36722fcc42d32f2e2573e936bc1a7fbdb2fe2569765795203a835b7ac40",
+    "bytes": 847589
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\dataflow-actividades-20261124-125415\\08-dataflow-actividades.finalize.json",
+    "summaryReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\dataflow-actividades-20261124-125415\\08-dataflow-actividades.finalize-summary.json",
+    "browserCheckReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\dataflow-actividades-20261124-125415\\08-dataflow-actividades.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6038,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 2,
+      "routesOverSuggestedBends": 2
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "f3",
+            "from": "act_tbl",
+            "to": "dash_svc",
+            "label": "horas por periodo",
+            "collectionIndex": 2,
+            "artifactIndex": 3
+          },
+          "right": {
+            "id": "f10",
+            "from": "act_api",
+            "to": "excel",
+            "label": "lista filtrada",
+            "collectionIndex": 9,
+            "artifactIndex": 10
+          },
+          "point": [
+            637.5,
+            227
+          ]
+        },
+        {
+          "left": {
+            "id": "f4",
+            "from": "usr_tbl",
+            "to": "cost_sql",
+            "label": "tarifa hora",
+            "collectionIndex": 3,
+            "artifactIndex": 4
+          },
+          "right": {
+            "id": "f9",
+            "from": "proj_api",
+            "to": "excel",
+            "label": "filas reporte",
+            "collectionIndex": 8,
+            "artifactIndex": 9
+          },
+          "point": [
+            629.5,
+            455
+          ]
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "f9",
+            "from": "proj_api",
+            "to": "excel",
+            "label": "filas reporte",
+            "collectionIndex": 8,
+            "artifactIndex": 9
+          },
+          "bends": 4,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "id": "f10",
+            "from": "act_api",
+            "to": "excel",
+            "label": "lista filtrada",
+            "collectionIndex": 9,
+            "artifactIndex": 10
+          },
+          "bends": 4,
+          "stretch": 1.17
+        }
+      ],
+      "truncated": false
+    },
+    "repair": "Advisory only: this mode places or routes these relationships itself. Report them; do not remove relationships or meaning to reduce crossings."
+  }
+}

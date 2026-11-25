@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "849f3022-b99c-4f46-a156-750fbe3bf8c1",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\sequence-login-20261124-125415\\candidate.json",
+  "output": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\06-secuencia-login.html",
+  "specification": {
+    "sha256": "e037e0b58e48e4d781df3cd83014fe9b61a964ae4550cc5e31072d66cc60186b",
+    "bytes": 3433
+  },
+  "artifact": {
+    "sha256": "70c85c02054f9859ac27c4f25ea0604f578cd82ae3e2790c540d0ab109821754",
+    "bytes": 839024
+  }
+}

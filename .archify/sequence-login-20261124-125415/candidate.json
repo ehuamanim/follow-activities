@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Secuencia de login JWT",
+    "locale": "es",
+    "output": "doc/diagramas/06-secuencia-login.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ehuamanim/follow-activities",
+      "revision": "ebe2a2711ea9672526fd99bed730c895a5b53377"
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "Usuario", "sublabel": "formulario login", "sources": [{ "path": "frontend/src/app/features/auth/login/login.component.ts", "line": 1, "end_line": 35 }] },
+    { "id": "spa", "type": "frontend", "label": "AuthService", "sublabel": "Angular", "sources": [{ "path": "frontend/src/app/core/services/auth.service.ts", "line": 17, "end_line": 66 }] },
+    { "id": "api", "type": "backend", "label": "API Express", "sublabel": "/api/auth/login", "sources": [{ "path": "backend/src/routes/authRoutes.ts", "line": 5, "end_line": 8 }] },
+    { "id": "auth", "type": "security", "label": "authService", "sublabel": "bcrypt + JWT", "sources": [{ "path": "backend/src/services/authService.ts", "line": 29, "end_line": 68 }] },
+    { "id": "db", "type": "database", "label": "PostgreSQL", "sublabel": "users", "sources": [{ "path": "backend/src/services/authService.ts", "line": 29, "end_line": 33 }] }
+  ],
+  "segments": [
+    { "from": 150, "to": 250, "label": "Credenciales" },
+    { "from": 260, "to": 400, "label": "Verificación" },
+    { "from": 410, "to": 520, "label": "Sesión" }
+  ],
+  "messages": [
+    { "id": "submit", "from": "user", "to": "spa", "y": 170, "label": "email + password", "variant": "default" },
+    { "id": "post", "from": "spa", "to": "api", "y": 200, "label": "POST /auth/login", "variant": "emphasis" },
+    { "id": "validate", "from": "api", "to": "auth", "y": 230, "label": "loginUser()", "variant": "security", "note": "express-validator previo" },
+    { "id": "query", "from": "auth", "to": "db", "y": 280, "label": "SELECT user status=A", "variant": "emphasis" },
+    { "id": "row", "from": "db", "to": "auth", "y": 310, "label": "row + password_hash", "variant": "return" },
+    { "id": "token", "from": "auth", "to": "api", "y": 360, "label": "user + JWT 7d", "variant": "return", "note": "bcrypt.compare (12 rounds) antes de firmar JWT" },
+    { "id": "json", "from": "api", "to": "spa", "y": 430, "label": "200 AuthResponse", "variant": "return" },
+    { "id": "store", "from": "spa", "to": "user", "y": 480, "label": "localStorage + redirect", "variant": "return", "note": "auth_token + auth_user" }
+  ],
+  "activations": [
+    { "participant": "spa", "from": 165, "to": 480, "type": "frontend" },
+    { "participant": "api", "from": 195, "to": 440, "type": "backend" },
+    { "participant": "auth", "from": 225, "to": 380, "type": "security" },
+    { "participant": "db", "from": 275, "to": 320, "type": "database" }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Seguridad",
+      "items": [
+        "Solo usuarios con status A pueden autenticarse",
+        "Hash bcrypt con 12 rounds",
+        "Claims JWT: id, email, profile"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Cliente",
+      "items": [
+        "authInterceptor adjunta Bearer en llamadas siguientes",
+        "authGuard exige token para el shell",
+        "Logout limpia localStorage"
+      ]
+    }
+  ]
+}

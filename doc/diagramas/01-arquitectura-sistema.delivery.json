@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "b2911bdd-ff61-4b0b-9d90-35ddaa7b6115",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-sistema-20261124-125415\\candidate.json",
+  "output": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\01-arquitectura-sistema.html",
+  "specification": {
+    "sha256": "cdfedc30dc9662ef428f92b65257a732ee5b09e2aaff253e3510b03ab97324dd",
+    "bytes": 5302
+  },
+  "artifact": {
+    "sha256": "9a7b01e9d276a2146712c06fc65344b60de1bc4713c979932f8e4141a5955602",
+    "bytes": 851887
+  }
+}

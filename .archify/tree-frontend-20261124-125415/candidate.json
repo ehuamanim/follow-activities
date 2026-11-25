@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "tree",
+  "meta": {
+    "title": "Árbol de componentes frontend",
+    "locale": "es",
+    "subtitle": "Contención por feature; no representa llamadas HTTP.",
+    "output": "doc/diagramas/07-arbol-componentes-frontend.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ehuamanim/follow-activities",
+      "revision": "ebe2a2711ea9672526fd99bed730c895a5b53377"
+    }
+  },
+  "layout": { "direction": "right" },
+  "nodes": [
+    { "id": "app", "label": "AppComponent", "sublabel": "raíz", "sources": [{ "path": "frontend/src/app/app.component.ts", "line": 1, "end_line": 12 }] },
+    { "id": "login", "label": "LoginComponent", "parent": "app", "sublabel": "/login", "sources": [{ "path": "frontend/src/app/features/auth/login/login.component.ts", "line": 1, "end_line": 20 }] },
+    { "id": "layout", "label": "LayoutComponent", "parent": "app", "sublabel": "authGuard", "sources": [{ "path": "frontend/src/app/shared/components/layout/layout.component.ts", "line": 1, "end_line": 11 }] },
+    { "id": "navbar", "label": "NavbarComponent", "parent": "layout", "sublabel": "navegación", "sources": [{ "path": "frontend/src/app/shared/components/navbar/navbar.component.ts", "line": 1, "end_line": 27 }] },
+    { "id": "activities", "label": "Activities", "parent": "layout", "sublabel": "feature" },
+    { "id": "alist", "label": "ActivityList", "parent": "activities", "sublabel": "/activities", "sources": [{ "path": "frontend/src/app/features/activities/activity-list/activity-list.component.ts", "line": 42, "end_line": 80 }] },
+    { "id": "aform", "label": "ActivityForm", "parent": "activities", "sublabel": "new/edit", "sources": [{ "path": "frontend/src/app/features/activities/activity-form/activity-form.component.ts", "line": 1, "end_line": 30 }] },
+    { "id": "projects", "label": "Projects", "parent": "layout", "sublabel": "feature" },
+    { "id": "plist", "label": "ProjectList", "parent": "projects", "sublabel": "/projects", "sources": [{ "path": "frontend/src/app/features/projects/project-list.component.ts", "line": 1, "end_line": 30 }] },
+    { "id": "team", "label": "TeamReport", "parent": "projects", "sublabel": "Admin", "sources": [{ "path": "frontend/src/app/features/projects/team-report/team-report.component.ts", "line": 1, "end_line": 30 }] },
+    { "id": "admin", "label": "Admin", "parent": "layout", "sublabel": "profileGuard" },
+    { "id": "dash", "label": "Dashboard", "parent": "admin", "sublabel": "Chart.js", "sources": [{ "path": "frontend/src/app/features/dashboard/dashboard.component.ts", "line": 16, "end_line": 40 }] },
+    { "id": "areport", "label": "ActivitiesReport", "parent": "admin", "sources": [{ "path": "frontend/src/app/features/reports/activities-report/activities-report.component.ts", "line": 1, "end_line": 30 }] },
+    { "id": "cost", "label": "ProjectCostReport", "parent": "admin", "sources": [{ "path": "frontend/src/app/features/reports/project-cost-report/project-cost-report.component.ts", "line": 1, "end_line": 30 }] },
+    { "id": "users", "label": "UserAdmin", "parent": "admin", "sources": [{ "path": "frontend/src/app/features/users/user-admin.component.ts", "line": 1, "end_line": 30 }] },
+    { "id": "register", "label": "RegisterComponent", "parent": "admin", "sublabel": "/users/new", "sources": [{ "path": "frontend/src/app/features/auth/register/register.component.ts", "line": 1, "end_line": 30 }] }
+  ]
+}

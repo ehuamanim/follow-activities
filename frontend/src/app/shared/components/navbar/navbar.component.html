@@ -4,52 +4,32 @@
       <div class="flex items-center gap-8">
         <img src="assets/cirrus-logo.png" alt="Activities track" class="h-9" />
         <div class="flex gap-4">
-          <a
-            *ngIf="isAdministrator"
-            routerLink="/dashboard"
-            routerLinkActive="text-blue-600 font-semibold"
-            class="text-gray-600 hover:text-blue-600 text-sm transition"
-          >Dashboard</a>
-          <a
-            routerLink="/activities"
-            routerLinkActive="text-blue-600 font-semibold"
-            class="text-gray-600 hover:text-blue-600 text-sm transition"
-          >My activities</a>
-          <a
-            routerLink="/projects"
-            routerLinkActive="text-blue-600 font-semibold"
-            class="text-gray-600 hover:text-blue-600 text-sm transition"
-          >Projects</a>
-          <a
-            *ngIf="isAdministrator"
-            routerLink="/reports/activities"
-            routerLinkActive="text-blue-600 font-semibold"
-            class="text-gray-600 hover:text-blue-600 text-sm transition"
-          >Reports</a>
-          <a
-            *ngIf="isAdministrator"
-            routerLink="/reports/project-costs"
-            routerLinkActive="text-blue-600 font-semibold"
-            class="text-gray-600 hover:text-blue-600 text-sm transition"
-          >Project Costs</a>
-          <a
-            *ngIf="isAdministrator"
-            routerLink="/users"
-            routerLinkActive="text-blue-600 font-semibold"
-            class="text-gray-600 hover:text-blue-600 text-sm transition"
-          >Users</a>
+          <a *ngIf="isAdministrator" routerLink="/dashboard" routerLinkActive="text-blue-600 font-semibold" class="text-gray-600 hover:text-blue-600 text-sm transition">Dashboard</a>
+          <a routerLink="/activities" routerLinkActive="text-blue-600 font-semibold" class="text-gray-600 hover:text-blue-600 text-sm transition">Mis actividades</a>
+          <a routerLink="/projects" routerLinkActive="text-blue-600 font-semibold" class="text-gray-600 hover:text-blue-600 text-sm transition">Proyectos</a>
+          <a *ngIf="isAdministrator" routerLink="/reports/activities" routerLinkActive="text-blue-600 font-semibold" class="text-gray-600 hover:text-blue-600 text-sm transition">Reportes</a>
+          <a *ngIf="isAdministrator" routerLink="/reports/project-costs" routerLinkActive="text-blue-600 font-semibold" class="text-gray-600 hover:text-blue-600 text-sm transition">Costos</a>
+          <a *ngIf="isAdministrator" routerLink="/users" routerLinkActive="text-blue-600 font-semibold" class="text-gray-600 hover:text-blue-600 text-sm transition">Usuarios</a>
         </div>
       </div>
-      <div class="flex items-center gap-4">
-        <span *ngIf="currentUser" class="text-sm text-gray-600">
-          {{ currentUser.name }} {{ currentUser.surnames }}
-        </span>
-        <button
-          (click)="logout()"
-          class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md transition"
-        >
-          Logout
+      <div class="flex items-center gap-4 relative">
+        <button type="button" (click)="toggleNotifications()" class="relative text-sm text-gray-600 hover:text-blue-600">
+          Notificaciones
+          <span *ngIf="unreadCount > 0" class="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] rounded-full px-1.5">{{ unreadCount }}</span>
         </button>
+        <div *ngIf="showNotifications" class="absolute right-24 top-10 w-80 bg-white border rounded shadow-lg z-20 p-3">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm font-semibold">Bandeja</span>
+            <button type="button" (click)="markAllRead()" class="text-xs text-blue-600">Marcar todas</button>
+          </div>
+          <div *ngIf="notifications.length === 0" class="text-xs text-gray-500">Sin notificaciones</div>
+          <button type="button" *ngFor="let n of notifications" (click)="markRead(n)" class="w-full text-left border-b py-2 text-xs hover:bg-gray-50" [class.font-semibold]="!n.read_at">
+            <div>{{ n.title }}</div>
+            <div class="text-gray-500">{{ n.body }}</div>
+          </button>
+        </div>
+        <span *ngIf="currentUser" class="text-sm text-gray-600">{{ currentUser.name }} {{ currentUser.surnames }}</span>
+        <button (click)="logout()" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md transition">Salir</button>
       </div>
     </div>
   </div>

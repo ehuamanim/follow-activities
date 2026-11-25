@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5a1fbc85-f831-4d91-b918-f3a55a4e0eb7",
+  "status": "current",
+  "command": "deliver",
+  "type": "erd",
+  "input": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\erd-modelo-20261124-125415\\candidate.json",
+  "output": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\05-erd-modelo-datos.html",
+  "specification": {
+    "sha256": "e977e67cc163240dc4641cc3ea67bda3011eadd4d175aee644b69576d8b00aff",
+    "bytes": 4801
+  },
+  "artifact": {
+    "sha256": "942c56968f029fbf848735b32d7ed99465ffa0b3f66debbe2faa983526744405",
+    "bytes": 858443
+  }
+}

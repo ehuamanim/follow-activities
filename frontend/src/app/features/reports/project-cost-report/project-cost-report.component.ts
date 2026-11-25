@@ -15,52 +15,81 @@ export class ProjectCostReportComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
 
   projects: Project[] = [];
+  selectedProjectIds: number[] = [];
   report: ProjectCostReportEntry[] = [];
   loading = false;
   errorMessage = '';
 
   readonly form = this.fb.group({
-    project_id: [null as number | null],
     start_date: [''],
     end_date: ['']
   });
 
   ngOnInit(): void {
-    this.projectService.getAll().subscribe({
-      next: (projects) => {
-        this.projects = projects;
-      },
-      error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to load projects.';
-      }
+    this.projectService.getAll(true).subscribe({
+      next: (projects) => { this.projects = projects; },
+      error: (err) => { this.errorMessage = err?.error?.message || 'No se pudieron cargar proyectos.'; }
     });
   }
 
-  loadReport(): void {
-    const { project_id, start_date, end_date } = this.form.value;
+  toggleProject(id: number, checked: boolean): void {
+    if (checked) {
+      this.selectedProjectIds = [...this.selectedProjectIds, id];
+    } else {
+      this.selectedProjectIds = this.selectedProjectIds.filter((x) => x !== id);
+    }
+  }
 
+  isSelected(id: number): boolean {
+    return this.selectedProjectIds.includes(id);
+  }
+
+  loadReport(): void {
+    const { start_date, end_date } = this.form.value;
     if (start_date && end_date && start_date > end_date) {
-      this.errorMessage = 'Initial date must be earlier than or equal to final date.';
+      this.errorMessage = 'La fecha inicial debe ser menor o igual a la final.';
       return;
     }
-
     this.loading = true;
     this.errorMessage = '';
-
-    this.projectService.getCostReport(project_id ?? undefined, start_date || undefined, end_date || undefined).subscribe({
+    this.projectService.getCostReport({
+      projectIds: this.selectedProjectIds.length ? this.selectedProjectIds : undefined,
+      startDate: start_date || undefined,
+      endDate: end_date || undefined
+    }).subscribe({
       next: (report) => {
         this.report = report;
         this.loading = false;
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to load cost report.';
+        this.errorMessage = err?.error?.message || 'No se pudo cargar el reporte.';
         this.loading = false;
       }
     });
   }
 
+  downloadExcel(): void {
+    const { start_date, end_date } = this.form.value;
+    this.projectService.downloadCostExcel({
+      projectIds: this.selectedProjectIds.length ? this.selectedProjectIds : undefined,
+      startDate: start_date || undefined,
+      endDate: end_date || undefined
+    }).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'costos-proyecto.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => { this.errorMessage = 'No se pudo descargar el Excel.'; }
+    });
+  }
+
   resetFilters(): void {
-    this.form.reset({ project_id: null, start_date: '', end_date: '' });
+    this.form.reset({ start_date: '', end_date: '' });
+    this.selectedProjectIds = [];
     this.report = [];
     this.errorMessage = '';
   }

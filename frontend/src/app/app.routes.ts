@@ -7,6 +7,7 @@ import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { ActivityListComponent } from './features/activities/activity-list/activity-list.component';
 import { ActivityFormComponent } from './features/activities/activity-form/activity-form.component';
+import { ActivityCalendarComponent } from './features/activities/activity-calendar/activity-calendar.component';
 import { ProjectListComponent } from './features/projects/project-list.component';
 import { TeamReportComponent } from './features/projects/team-report/team-report.component';
 import { ActivitiesReportComponent } from './features/reports/activities-report/activities-report.component';
@@ -28,12 +29,11 @@ export const routes: Routes = [
         data: { profiles: ['Administrator'] }
       },
       { path: 'activities', component: ActivityListComponent },
+      { path: 'activities/calendar', component: ActivityCalendarComponent },
       { path: 'activities/new', component: ActivityFormComponent },
       {
         path: 'activities/:id/edit',
-        component: ActivityFormComponent,
-        canActivate: [profileGuard],
-        data: { profiles: ['Administrator'] }
+        component: ActivityFormComponent
       },
       { path: 'projects', component: ProjectListComponent },
       {

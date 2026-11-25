@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Follow Activities — arquitectura del sistema",
+    "locale": "es",
+    "output": "doc/diagramas/01-arquitectura-sistema.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ehuamanim/follow-activities",
+      "revision": "ebe2a2711ea9672526fd99bed730c895a5b53377"
+    }
+  },
+  "components": [
+    {
+      "id": "operador",
+      "type": "external",
+      "label": "Operador",
+      "sublabel": "registra horas",
+      "pos": [40, 220],
+      "size": [120, 58],
+      "sources": [{ "path": "frontend/src/app/app.routes.ts", "line": 30, "end_line": 31 }]
+    },
+    {
+      "id": "admin",
+      "type": "external",
+      "label": "Administrador",
+      "sublabel": "KPIs y usuarios",
+      "pos": [40, 360],
+      "size": [120, 58],
+      "sources": [{ "path": "frontend/src/app/app.routes.ts", "line": 24, "end_line": 62 }]
+    },
+    {
+      "id": "spa",
+      "type": "frontend",
+      "label": "SPA Angular 19",
+      "sublabel": "standalone + Tailwind",
+      "pos": [240, 290],
+      "size": [150, 64],
+      "tag": "frontend/",
+      "sources": [
+        { "path": "frontend/package.json", "line": 12, "end_line": 26 },
+        { "path": "frontend/src/main.ts", "line": 1, "end_line": 6 }
+      ]
+    },
+    {
+      "id": "jwt_client",
+      "type": "security",
+      "label": "Sesión JWT",
+      "sublabel": "localStorage",
+      "pos": [240, 140],
+      "size": [150, 58],
+      "sources": [{ "path": "frontend/src/app/core/services/auth.service.ts", "line": 63, "end_line": 66 }]
+    },
+    {
+      "id": "apigw",
+      "type": "cloud",
+      "label": "HTTP API GW",
+      "sublabel": "stage /dev",
+      "pos": [470, 290],
+      "size": [140, 64],
+      "sources": [{ "path": "backend/template.yaml", "line": 132, "end_line": 147 }]
+    },
+    {
+      "id": "lambda",
+      "type": "backend",
+      "label": "Lambda API",
+      "sublabel": "Express + serverless",
+      "pos": [680, 290],
+      "size": [150, 64],
+      "tag": "backend/",
+      "sources": [
+        { "path": "backend/src/lambda.ts", "line": 1, "end_line": 15 },
+        { "path": "backend/src/app.ts", "line": 131, "end_line": 137 }
+      ]
+    },
+    {
+      "id": "auth_mw",
+      "type": "security",
+      "label": "Auth JWT",
+      "sublabel": "Bearer + perfiles",
+      "pos": [680, 140],
+      "size": [150, 58],
+      "sources": [{ "path": "backend/src/middleware/authMiddleware.ts", "line": 9, "end_line": 38 }]
+    },
+    {
+      "id": "secrets",
+      "type": "security",
+      "label": "Secrets Manager",
+      "sublabel": "JWT_SECRET",
+      "pos": [680, 440],
+      "size": [150, 58],
+      "sources": [{ "path": "backend/template.yaml", "line": 81, "end_line": 90 }]
+    },
+    {
+      "id": "rds",
+      "type": "database",
+      "label": "RDS PostgreSQL",
+      "sublabel": "activities_track",
+      "pos": [910, 290],
+      "size": [150, 64],
+      "sources": [
+        { "path": "backend/src/config/database.ts", "line": 9, "end_line": 28 },
+        { "path": "backend/migrations/001_initial_schema.sql", "line": 3, "end_line": 71 }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "AWS us-east-1",
+      "wraps": ["apigw", "lambda", "auth_mw", "secrets", "rds"],
+      "pad": 22
+    },
+    {
+      "kind": "security-group",
+      "label": "VPC privada (Lambda → RDS)",
+      "wraps": ["lambda", "auth_mw", "secrets", "rds"],
+      "pad": 14
+    }
+  ],
+  "connections": [
+    { "from": "operador", "to": "spa", "label": "HTTPS UI", "variant": "emphasis" },
+    { "from": "admin", "to": "spa", "label": "HTTPS UI", "variant": "emphasis" },
+    { "from": "spa", "to": "jwt_client", "label": "guarda token", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "spa", "to": "apigw", "label": "REST /api/*", "variant": "emphasis" },
+    { "from": "apigw", "to": "lambda", "label": "ANY proxy", "variant": "emphasis" },
+    { "from": "lambda", "to": "auth_mw", "label": "verifica JWT", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "lambda", "to": "secrets", "label": "lee secreto", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "from": "lambda", "to": "rds", "label": "SQL TLS", "variant": "emphasis" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Productos",
+      "items": [
+        "Frontend: SPA Angular 19 en frontend/",
+        "Backend: Express tipado desplegado como Lambda en backend/",
+        "Persistencia: PostgreSQL en RDS con migraciones SQL"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Seguridad",
+      "items": [
+        "Login emite JWT (bcrypt + jsonwebtoken)",
+        "Perfiles Operator y Administrator en claims",
+        "JWT_SECRET resuelto desde Secrets Manager en AWS"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Capacidades",
+      "items": [
+        "Registro de actividades por proyecto y horas",
+        "Dashboard KPI (equipo, proyecto, rol)",
+        "Reportes de costos y exportación Excel en cliente"
+      ]
+    }
+  ]
+}

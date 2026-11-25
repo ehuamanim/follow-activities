@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "afe18a83-4f54-4e63-99a6-691f065b8d99",
+  "status": "current",
+  "command": "deliver",
+  "type": "tree",
+  "input": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\tree-frontend-20261124-125415\\candidate.json",
+  "output": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\07-arbol-componentes-frontend.html",
+  "specification": {
+    "sha256": "e44daddd08b8bd10280f00a7349ee7d08ba0a3211e2ac678f88607ecdb056a43",
+    "bytes": 3511
+  },
+  "artifact": {
+    "sha256": "8643aa943061d8a068364322f427a23423cbe2fc4bc06009c6a6336d8696674f",
+    "bytes": 856957
+  }
+}

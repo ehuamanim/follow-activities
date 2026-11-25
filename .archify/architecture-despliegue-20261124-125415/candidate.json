@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Follow Activities — despliegue AWS (SAM)",
+    "locale": "es",
+    "output": "doc/diagramas/02-despliegue-aws.html",
+    "quality_profile": "showcase",
+    "engineering_profile": "deployment-ownership",
+    "repository": {
+      "url": "https://github.com/ehuamanim/follow-activities",
+      "revision": "ebe2a2711ea9672526fd99bed730c895a5b53377"
+    }
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "Navegador",
+      "sublabel": "SPA Angular",
+      "pos": [40, 300],
+      "size": [120, 58],
+      "tag": "cliente",
+      "sources": [{ "path": "frontend/src/environments/environment.prod.ts", "line": 1, "end_line": 4 }]
+    },
+    {
+      "id": "httpapi",
+      "type": "cloud",
+      "label": "HttpApi",
+      "sublabel": "API Gateway HTTP",
+      "pos": [240, 300],
+      "size": [140, 60],
+      "tag": "plataforma",
+      "sources": [{ "path": "backend/template.yaml", "line": 132, "end_line": 147 }]
+    },
+    {
+      "id": "apifn",
+      "type": "backend",
+      "label": "ApiFunction",
+      "sublabel": "nodejs20 / 512MB",
+      "pos": [470, 300],
+      "size": [150, 64],
+      "tag": "app",
+      "sources": [{ "path": "backend/template.yaml", "line": 93, "end_line": 130 }]
+    },
+    {
+      "id": "lam_sg",
+      "type": "security",
+      "label": "Lambda SG",
+      "sublabel": "egress a RDS",
+      "pos": [470, 150],
+      "size": [150, 58],
+      "tag": "red",
+      "sources": [{ "path": "backend/template.yaml", "line": 61, "end_line": 69 }]
+    },
+    {
+      "id": "jwtsec",
+      "type": "security",
+      "label": "JWTSecret",
+      "sublabel": "Secrets Manager",
+      "pos": [470, 450],
+      "size": [150, 58],
+      "tag": "seguridad",
+      "sources": [{ "path": "backend/template.yaml", "line": 81, "end_line": 90 }]
+    },
+    {
+      "id": "rds",
+      "type": "database",
+      "label": "RDS Postgres",
+      "sublabel": "privado :5432",
+      "pos": [710, 300],
+      "size": [150, 64],
+      "tag": "datos",
+      "sources": [
+        { "path": "backend/template.yaml", "line": 22, "end_line": 35 },
+        { "path": "backend/VPC-SETUP.md", "line": 36, "end_line": 44 }
+      ]
+    },
+    {
+      "id": "rds_sg",
+      "type": "security",
+      "label": "RDS SG",
+      "sublabel": "ingress 5432",
+      "pos": [710, 150],
+      "size": [150, 58],
+      "tag": "red",
+      "sources": [{ "path": "backend/template.yaml", "line": 71, "end_line": 79 }]
+    },
+    {
+      "id": "sam",
+      "type": "external",
+      "label": "SAM CLI",
+      "sublabel": "sam build/deploy",
+      "pos": [40, 450],
+      "size": [140, 58],
+      "tag": "CI local",
+      "sources": [{ "path": "backend/package.json", "line": 11, "end_line": 12 }]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "AWS región (us-east-1)",
+      "wraps": ["httpapi", "apifn", "lam_sg", "jwtsec", "rds", "rds_sg"],
+      "pad": 22
+    },
+    {
+      "kind": "security-group",
+      "label": "VPC privada — subnets Lambda",
+      "wraps": ["apifn", "lam_sg", "jwtsec", "rds", "rds_sg"],
+      "pad": 14
+    }
+  ],
+  "connections": [
+    { "from": "browser", "to": "httpapi", "label": "HTTPS REST", "variant": "emphasis" },
+    { "from": "httpapi", "to": "apifn", "label": "/{proxy+} ANY", "variant": "emphasis" },
+    { "from": "apifn", "to": "lam_sg", "label": "ENI en VPC", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "apifn", "to": "jwtsec", "label": "GetSecretValue", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "from": "apifn", "to": "rds", "label": "pg TLS :5432", "variant": "emphasis" },
+    { "from": "lam_sg", "to": "rds_sg", "label": "allow 5432", "variant": "security" },
+    { "from": "sam", "to": "httpapi", "label": "despliega stack", "variant": "dashed", "fromSide": "top", "toSide": "bottom" },
+    { "from": "sam", "to": "apifn", "label": "esbuild entry", "variant": "dashed", "fromSide": "right", "toSide": "bottom" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "IaC SAM",
+      "items": [
+        "template.yaml define HttpApi, Lambda, SG y secreto JWT",
+        "BuildMethod esbuild sobre src/lambda.ts",
+        "Outputs: ApiUrl y FunctionArn"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Red",
+      "items": [
+        "API Gateway es el único ingreso público",
+        "Lambda en subnets privadas con SG propio",
+        "Ingress RDS solo desde el SG de Lambda"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Runtime",
+      "items": [
+        "Timeout 30s, memoria 512 MB, Node 20",
+        "Pool pg reducido en Lambda (max 2)",
+        "Frontend prod apunta a execute-api .../dev/api"
+      ]
+    }
+  ]
+}

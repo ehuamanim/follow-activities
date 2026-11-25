@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Flujo de datos de actividades y reportes",
+    "locale": "es",
+    "output": "doc/diagramas/08-dataflow-actividades.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ehuamanim/follow-activities",
+      "revision": "ebe2a2711ea9672526fd99bed730c895a5b53377"
+    }
+  },
+  "stages": [
+    { "label": "Captura" },
+    { "label": "API" },
+    { "label": "Persistencia" },
+    { "label": "Agregación" },
+    { "label": "Consumo" }
+  ],
+  "nodes": [
+    { "id": "form", "type": "frontend", "label": "ActivityForm", "sublabel": "horas + tareas", "stage": 0, "row": 1, "sources": [{ "path": "frontend/src/app/features/activities/activity-form/activity-form.component.ts", "line": 1, "end_line": 40 }] },
+    { "id": "act_api", "type": "backend", "label": "activities API", "sublabel": "CRUD + filtros", "stage": 1, "row": 1, "sources": [{ "path": "backend/src/controllers/activityController.ts", "line": 23, "end_line": 97 }] },
+    { "id": "proj_api", "type": "backend", "label": "projects API", "sublabel": "reportes", "stage": 1, "row": 3, "sources": [{ "path": "backend/src/controllers/projectController.ts", "line": 50, "end_line": 180 }] },
+    { "id": "act_tbl", "type": "database", "label": "activities", "sublabel": "hechos de horas", "stage": 2, "row": 1, "sources": [{ "path": "backend/migrations/001_initial_schema.sql", "line": 64, "end_line": 71 }] },
+    { "id": "usr_tbl", "type": "database", "label": "users", "sublabel": "cost_per_hour", "stage": 2, "row": 3, "sources": [{ "path": "backend/migrations/004_add_user_cost_per_hour.sql", "line": 1, "end_line": 6 }] },
+    { "id": "dash_svc", "type": "backend", "label": "dashboardService", "sublabel": "SUM hours", "stage": 3, "row": 0, "sources": [{ "path": "backend/src/services/dashboardService.ts", "line": 1, "end_line": 60 }] },
+    { "id": "cost_sql", "type": "backend", "label": "cost report SQL", "sublabel": "hours × cost", "stage": 3, "row": 2, "sources": [{ "path": "backend/src/controllers/projectController.ts", "line": 110, "end_line": 170 }] },
+    { "id": "dash_ui", "type": "frontend", "label": "Dashboard charts", "sublabel": "Chart.js", "stage": 4, "row": 0, "sources": [{ "path": "frontend/src/app/features/dashboard/dashboard.component.ts", "line": 36, "end_line": 57 }] },
+    { "id": "excel", "type": "frontend", "label": "Export Excel", "sublabel": "XML en cliente", "stage": 4, "row": 2, "sources": [{ "path": "frontend/src/app/features/activities/activity-list/activity-list.component.ts", "line": 122, "end_line": 180 }] }
+  ],
+  "flows": [
+    { "id": "f1", "from": "form", "to": "act_api", "label": "POST activity", "classification": "write", "variant": "emphasis" },
+    { "id": "f2", "from": "act_api", "to": "act_tbl", "label": "INSERT/SELECT", "classification": "SQL", "variant": "emphasis" },
+    { "id": "f3", "from": "act_tbl", "to": "dash_svc", "label": "horas por periodo", "classification": "aggregate", "variant": "emphasis" },
+    { "id": "f4", "from": "usr_tbl", "to": "cost_sql", "label": "tarifa hora", "classification": "pricing", "variant": "security" },
+    { "id": "f5", "from": "act_tbl", "to": "cost_sql", "label": "horas proyecto", "classification": "aggregate", "variant": "default" },
+    { "id": "f6", "from": "act_tbl", "to": "proj_api", "label": "team/activities report", "classification": "read", "variant": "default" },
+    { "id": "f7", "from": "dash_svc", "to": "dash_ui", "label": "KPI JSON", "classification": "consume", "variant": "emphasis" },
+    { "id": "f8", "from": "cost_sql", "to": "excel", "label": "filas costo", "classification": "export", "variant": "dashed" },
+    { "id": "f9", "from": "proj_api", "to": "excel", "label": "filas reporte", "classification": "export", "variant": "dashed" },
+    { "id": "f10", "from": "act_api", "to": "excel", "label": "lista filtrada", "classification": "export", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Escritura",
+      "items": [
+        "El operador crea actividades propias",
+        "activity_date separa el día de trabajo de created_at",
+        "Filtros start_date/end_date y user_id (admin)"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Lectura analítica",
+      "items": [
+        "Dashboard agrega por equipo, proyecto y rol",
+        "Costos = horas × cost_per_hour del usuario",
+        "Export Excel se genera en el navegador"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\sequence-login-20261124-125415\\candidate.json",
+    "sha256": "e037e0b58e48e4d781df3cd83014fe9b61a964ae4550cc5e31072d66cc60186b",
+    "bytes": 3433
+  },
+  "artifact": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\06-secuencia-login.html",
+    "sha256": "70c85c02054f9859ac27c4f25ea0604f578cd82ae3e2790c540d0ab109821754",
+    "bytes": 839024
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\sequence-login-20261124-125415\\06-secuencia-login.finalize.json",
+    "summaryReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\sequence-login-20261124-125415\\06-secuencia-login.finalize-summary.json",
+    "browserCheckReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\sequence-login-20261124-125415\\06-secuencia-login.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5935,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

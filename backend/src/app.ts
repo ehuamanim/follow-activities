@@ -11,6 +11,8 @@ import projectRoutes from './routes/projectRoutes';
 import activityRoutes from './routes/activityRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import roleRoutes from './routes/roleRoutes';
+import exportRoutes from './routes/exportRoutes';
+import collaborationRoutes from './routes/collaborationRoutes';
 
 const app = express();
 const isServerlessRuntime = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV);
@@ -135,6 +137,8 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/exports', exportRoutes);
+app.use('/api', collaborationRoutes);
 
 // 404 handler
 app.use((_req, res) => {

@@ -1,13 +1,31 @@
 import { pool } from '../config/database';
 
-type Period = 'week' | 'month';
+export type Period = 'week' | 'month' | 'custom';
 
-// Returns a safe parameterized interval string accepted by PostgreSQL
-const periodInterval = (period: Period): string =>
-  period === 'week' ? '7 days' : '30 days';
+export interface DateRange {
+  startDate?: string;
+  endDate?: string;
+  period?: Period;
+}
 
-export const getHoursByTeam = async (period: Period) => {
-  const interval = periodInterval(period);
+const buildDateFilter = (alias: string, range: DateRange): { clause: string; values: string[] } => {
+  if (range.startDate && range.endDate) {
+    return {
+      clause: `${alias}.activity_date >= $1::date AND ${alias}.activity_date <= $2::date`,
+      values: [range.startDate, range.endDate],
+    };
+  }
+
+  const period = range.period === 'month' ? 'month' : 'week';
+  const interval = period === 'week' ? '7 days' : '30 days';
+  return {
+    clause: `${alias}.activity_date >= (CURRENT_DATE - $1::interval)`,
+    values: [interval],
+  };
+};
+
+export const getHoursByTeam = async (range: DateRange) => {
+  const { clause, values } = buildDateFilter('a', range);
   const result = await pool.query(
     `SELECT
        u.id AS user_id,
@@ -18,17 +36,17 @@ export const getHoursByTeam = async (period: Period) => {
      FROM users u
      LEFT JOIN activities a
        ON a.user_id = u.id
-       AND a.created_at >= NOW() - $1::interval
+       AND ${clause}
      WHERE u.status = 'A'
      GROUP BY u.id, u.name, u.surnames, u.email
      ORDER BY total_hours DESC`,
-    [interval]
+    values
   );
   return result.rows;
 };
 
-export const getHoursByProject = async (period: Period) => {
-  const interval = periodInterval(period);
+export const getHoursByProject = async (range: DateRange) => {
+  const { clause, values } = buildDateFilter('a', range);
   const result = await pool.query(
     `SELECT
        p.id AS project_id,
@@ -37,16 +55,16 @@ export const getHoursByProject = async (period: Period) => {
      FROM projects p
      LEFT JOIN activities a
        ON a.project_id = p.id
-       AND a.created_at >= NOW() - $1::interval
+       AND ${clause}
      GROUP BY p.id, p.name
      ORDER BY total_hours DESC`,
-    [interval]
+    values
   );
   return result.rows;
 };
 
-export const getHoursByRole = async (period: Period) => {
-  const interval = periodInterval(period);
+export const getHoursByRole = async (range: DateRange) => {
+  const { clause, values } = buildDateFilter('a', range);
   const result = await pool.query(
     `SELECT
        r.id AS role_id,
@@ -56,10 +74,10 @@ export const getHoursByRole = async (period: Period) => {
      LEFT JOIN user_roles ur ON ur.role_id = r.id
      LEFT JOIN activities a
        ON a.user_id = ur.user_id
-       AND a.created_at >= NOW() - $1::interval
+       AND ${clause}
      GROUP BY r.id, r.name
      ORDER BY total_hours DESC`,
-    [interval]
+    values
   );
   return result.rows;
 };

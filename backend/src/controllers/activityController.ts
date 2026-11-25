@@ -25,6 +25,9 @@ export const getActivities = async (req: AuthRequest, res: Response): Promise<vo
     const currentUserId = req.user?.id;
     const currentProfile = req.user?.profile;
     const requestedUserId = req.query['user_id'] ? Number.parseInt(req.query['user_id'] as string, 10) : null;
+    const requestedProjectId = req.query['project_id']
+      ? Number.parseInt(req.query['project_id'] as string, 10)
+      : null;
     const startDate = typeof req.query['start_date'] === 'string' ? req.query['start_date'] : null;
     const endDate = typeof req.query['end_date'] === 'string' ? req.query['end_date'] : null;
 
@@ -43,6 +46,11 @@ export const getActivities = async (req: AuthRequest, res: Response): Promise<vo
     } else if (requestedUserId !== null && !Number.isNaN(requestedUserId)) {
       values.push(requestedUserId);
       filters.push(`a.user_id = $${values.length}`);
+    }
+
+    if (requestedProjectId !== null && !Number.isNaN(requestedProjectId)) {
+      values.push(requestedProjectId);
+      filters.push(`a.project_id = $${values.length}`);
     }
 
     if (startDate) {
@@ -75,15 +83,50 @@ export const getActivities = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
+const assertCanImputeProject = async (
+  userId: number,
+  profile: string,
+  projectId: number
+): Promise<string | null> => {
+  const project = await pool.query(
+    `SELECT id, status FROM projects WHERE id = $1`,
+    [projectId]
+  );
+  if (project.rows.length === 0) {
+    return 'Project not found';
+  }
+  if (project.rows[0].status !== 'active') {
+    return 'Project is not active';
+  }
+  if (profile === 'Administrator') {
+    return null;
+  }
+  const member = await pool.query(
+    `SELECT 1 FROM project_members WHERE project_id = $1 AND user_id = $2`,
+    [projectId, userId]
+  );
+  if (member.rows.length === 0) {
+    return 'Forbidden: not a member of this project';
+  }
+  return null;
+};
+
 export const createActivity = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
-    if (!userId) {
+    const profile = req.user?.profile;
+    if (!userId || !profile) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 
     const { project_id, hours, tasks, activity_date } = req.body;
+    const membershipError = await assertCanImputeProject(userId, profile, Number(project_id));
+    if (membershipError) {
+      res.status(membershipError.startsWith('Forbidden') ? 403 : 400).json({ message: membershipError });
+      return;
+    }
+
     const date = activity_date || new Date().toISOString().split('T')[0];
 
     const result = await pool.query(
@@ -93,6 +136,126 @@ export const createActivity = async (req: AuthRequest, res: Response): Promise<v
     res.status(201).json(result.rows[0]);
   } catch {
     res.status(500).json({ message: 'Failed to create activity' });
+  }
+};
+
+export const copyPreviousActivity = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const previous = await pool.query(
+      `SELECT project_id, hours, tasks, activity_date
+       FROM activities
+       WHERE user_id = $1
+       ORDER BY activity_date DESC, id DESC
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (previous.rows.length === 0) {
+      res.status(404).json({ message: 'No previous activity to copy' });
+      return;
+    }
+
+    res.json(previous.rows[0]);
+  } catch {
+    res.status(500).json({ message: 'Failed to copy previous activity' });
+  }
+};
+
+export const bulkCreateActivities = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    const profile = req.user?.profile;
+    if (!userId || !profile) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const items = Array.isArray(req.body?.items) ? req.body.items : null;
+    if (!items || items.length === 0) {
+      res.status(400).json({ message: 'items array is required' });
+      return;
+    }
+
+    const created = [];
+    const errors: Array<{ index: number; message: string }> = [];
+
+    for (let i = 0; i < items.length; i += 1) {
+      const item = items[i];
+      const projectId = Number(item.project_id);
+      const hours = Number(item.hours);
+      const tasks = String(item.tasks || '').trim();
+      const activityDate = item.activity_date || new Date().toISOString().split('T')[0];
+
+      if (!projectId || !hours || !tasks) {
+        errors.push({ index: i, message: 'project_id, hours and tasks are required' });
+        continue;
+      }
+
+      const membershipError = await assertCanImputeProject(userId, profile, projectId);
+      if (membershipError) {
+        errors.push({ index: i, message: membershipError });
+        continue;
+      }
+
+      const result = await pool.query(
+        `INSERT INTO activities (user_id, project_id, hours, tasks, activity_date)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [userId, projectId, hours, tasks, activityDate]
+      );
+      created.push(result.rows[0]);
+    }
+
+    res.status(201).json({ created, errors });
+  } catch {
+    res.status(500).json({ message: 'Failed to bulk create activities' });
+  }
+};
+
+export const reminderStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (process.env.REMINDERS_ENABLED !== 'true') {
+      res.json({ enabled: false, missingDays: [] });
+      return;
+    }
+
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const result = await pool.query(
+      `SELECT activity_date::text AS activity_date
+       FROM activities
+       WHERE user_id = $1
+         AND activity_date >= CURRENT_DATE - INTERVAL '7 days'
+       GROUP BY activity_date`,
+      [userId]
+    );
+
+    const registered = new Set(result.rows.map((r) => r.activity_date));
+    const missingDays: string[] = [];
+    for (let i = 1; i <= 7; i += 1) {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() - i);
+      if (d.getUTCDay() === 0 || d.getUTCDay() === 6) {
+        continue;
+      }
+      const iso = d.toISOString().split('T')[0];
+      if (!registered.has(iso)) {
+        missingDays.push(iso);
+      }
+    }
+
+    res.json({ enabled: true, missingDays });
+  } catch {
+    res.status(500).json({ message: 'Failed to fetch reminder status' });
   }
 };
 

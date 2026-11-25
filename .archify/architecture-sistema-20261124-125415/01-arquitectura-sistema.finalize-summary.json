@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-sistema-20261124-125415\\candidate.json",
+    "sha256": "cdfedc30dc9662ef428f92b65257a732ee5b09e2aaff253e3510b03ab97324dd",
+    "bytes": 5302
+  },
+  "artifact": {
+    "path": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\doc\\diagramas\\01-arquitectura-sistema.html",
+    "sha256": "9a7b01e9d276a2146712c06fc65344b60de1bc4713c979932f8e4141a5955602",
+    "bytes": 851887
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-sistema-20261124-125415\\01-arquitectura-sistema.finalize.json",
+    "summaryReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-sistema-20261124-125415\\01-arquitectura-sistema.finalize-summary.json",
+    "browserCheckReceipt": "D:\\ericson\\proyectos\\2026\\cirrus-iniciativas\\track-activities\\.archify\\architecture-sistema-20261124-125415\\01-arquitectura-sistema.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6123,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

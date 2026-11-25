@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "diagram_type": "erd",
+  "meta": {
+    "title": "Modelo de datos Follow Activities",
+    "locale": "es",
+    "output": "doc/diagramas/05-erd-modelo-datos.html",
+    "quality_profile": "standard",
+    "repository": {
+      "url": "https://github.com/ehuamanim/follow-activities",
+      "revision": "ebe2a2711ea9672526fd99bed730c895a5b53377"
+    }
+  },
+  "layout": {
+    "mode": "grid",
+    "gapY": 40,
+    "gapX": 70
+  },
+  "entities": [
+    {
+      "id": "users",
+      "label": "users",
+      "tag": "identidad",
+      "row": 0,
+      "col": 0,
+      "sources": [
+        { "path": "backend/migrations/001_initial_schema.sql", "line": 3, "end_line": 42 },
+        { "path": "backend/migrations/004_add_user_cost_per_hour.sql", "line": 1, "end_line": 6 }
+      ],
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "name", "type": "varchar(100)" },
+        { "name": "surnames", "type": "varchar(200)" },
+        { "name": "email", "type": "varchar(255)", "key": "uk" },
+        { "name": "profile", "type": "varchar(20)" },
+        { "name": "status", "type": "char(1)" },
+        { "name": "cost_per_hour", "type": "decimal(10,2)" },
+        { "name": "password_hash", "type": "varchar(255)" },
+        { "name": "created_at", "type": "timestamp" }
+      ]
+    },
+    {
+      "id": "roles",
+      "label": "roles",
+      "tag": "identidad",
+      "row": 1,
+      "col": 0,
+      "sources": [{ "path": "backend/migrations/001_initial_schema.sql", "line": 44, "end_line": 48 }],
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "name", "type": "varchar(100)", "key": "uk" },
+        { "name": "description", "type": "text" }
+      ]
+    },
+    {
+      "id": "user_roles",
+      "label": "user_roles",
+      "tag": "identidad",
+      "row": 2,
+      "col": 0,
+      "sources": [{ "path": "backend/migrations/001_initial_schema.sql", "line": 50, "end_line": 54 }],
+      "attributes": [
+        { "name": "user_id", "type": "int", "key": ["pk", "fk"], "references": "users.id" },
+        { "name": "role_id", "type": "int", "key": ["pk", "fk"], "references": "roles.id" }
+      ]
+    },
+    {
+      "id": "projects",
+      "label": "projects",
+      "tag": "trabajo",
+      "row": 0,
+      "col": 1,
+      "sources": [{ "path": "backend/migrations/001_initial_schema.sql", "line": 56, "end_line": 62 }],
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "name", "type": "varchar(255)" },
+        { "name": "description", "type": "text" },
+        { "name": "status", "type": "varchar(50)" },
+        { "name": "created_at", "type": "timestamp" }
+      ]
+    },
+    {
+      "id": "activities",
+      "label": "activities",
+      "tag": "trabajo",
+      "row": 1,
+      "col": 1,
+      "sources": [
+        { "path": "backend/migrations/001_initial_schema.sql", "line": 64, "end_line": 71 },
+        { "path": "backend/migrations/002_add_activity_date.sql", "line": 1, "end_line": 6 },
+        { "path": "backend/migrations/003_add_activity_cost_per_hour.sql", "line": 1, "end_line": 6 }
+      ],
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "user_id", "type": "int", "key": "fk", "references": "users.id" },
+        { "name": "project_id", "type": "int", "key": "fk", "references": "projects.id" },
+        { "name": "hours", "type": "decimal(5,2)" },
+        { "name": "tasks", "type": "text" },
+        { "name": "activity_date", "type": "date" },
+        { "name": "cost_per_hour", "type": "decimal(10,2)" },
+        { "name": "created_at", "type": "timestamp" }
+      ]
+    }
+  ],
+  "relationships": [
+    { "from": "user_roles", "to": "users", "fromCardinality": "many", "toCardinality": "one", "label": "usuario" },
+    { "from": "user_roles", "to": "roles", "fromCardinality": "many", "toCardinality": "one", "label": "rol" },
+    { "from": "activities", "to": "users", "fromCardinality": "many", "toCardinality": "one", "label": "autor" },
+    { "from": "activities", "to": "projects", "fromCardinality": "many", "toCardinality": "one", "label": "proyecto" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Dominios",
+      "items": [
+        "identidad: users, roles, user_roles",
+        "trabajo: projects, activities",
+        "profile CHECK: Operator | Administrator"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Costos",
+      "items": [
+        "users.cost_per_hour alimenta reportes",
+        "activities.cost_per_hour histórico opcional",
+        "status A/I controla usuarios activos"
+      ]
+    }
+  ]
+}

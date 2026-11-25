@@ -2,15 +2,25 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Project, TeamReportEntry, ProjectActivitiesReportEntry, ProjectCostReportEntry } from '../../shared/models';
+import {
+  Project,
+  ProjectMember,
+  TeamReportEntry,
+  ProjectActivitiesReportEntry,
+  ProjectCostReportEntry
+} from '../../shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  getAll(): Observable<Project[]> {
-    return this.http.get<Project[]>(`${this.apiUrl}/projects`).pipe(
+  getAll(includeArchived = false): Observable<Project[]> {
+    let params = new HttpParams();
+    if (includeArchived) {
+      params = params.set('include_archived', 'true');
+    }
+    return this.http.get<Project[]>(`${this.apiUrl}/projects`, { params }).pipe(
       catchError(err => throwError(() => err))
     );
   }
@@ -33,8 +43,26 @@ export class ProjectService {
     );
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/projects/${id}`).pipe(
+  archive(id: number): Observable<Project> {
+    return this.http.patch<Project>(`${this.apiUrl}/projects/${id}/archive`, {}).pipe(
+      catchError(err => throwError(() => err))
+    );
+  }
+
+  getMembers(projectId: number): Observable<ProjectMember[]> {
+    return this.http.get<ProjectMember[]>(`${this.apiUrl}/projects/${projectId}/members`).pipe(
+      catchError(err => throwError(() => err))
+    );
+  }
+
+  addMember(projectId: number, userId: number): Observable<ProjectMember> {
+    return this.http.post<ProjectMember>(`${this.apiUrl}/projects/${projectId}/members`, {
+      user_id: userId
+    }).pipe(catchError(err => throwError(() => err)));
+  }
+
+  removeMember(projectId: number, userId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/projects/${projectId}/members/${userId}`).pipe(
       catchError(err => throwError(() => err))
     );
   }
@@ -56,21 +84,35 @@ export class ProjectService {
       .pipe(catchError(err => throwError(() => err)));
   }
 
-  getCostReport(projectId?: number, startDate?: string, endDate?: string): Observable<ProjectCostReportEntry[]> {
+  getCostReport(options?: {
+    projectId?: number;
+    projectIds?: number[];
+    startDate?: string;
+    endDate?: string;
+  }): Observable<ProjectCostReportEntry[]> {
     let params = new HttpParams();
-
-    if (projectId !== undefined) {
-      params = params.set('project_id', projectId);
-    }
-    if (startDate) {
-      params = params.set('start_date', startDate);
-    }
-    if (endDate) {
-      params = params.set('end_date', endDate);
-    }
+    if (options?.projectId !== undefined) params = params.set('project_id', options.projectId);
+    if (options?.projectIds?.length) params = params.set('project_ids', options.projectIds.join(','));
+    if (options?.startDate) params = params.set('start_date', options.startDate);
+    if (options?.endDate) params = params.set('end_date', options.endDate);
 
     return this.http
       .get<ProjectCostReportEntry[]>(`${this.apiUrl}/projects/cost-report`, { params })
       .pipe(catchError(err => throwError(() => err)));
+  }
+
+  downloadCostExcel(options?: {
+    projectIds?: number[];
+    startDate?: string;
+    endDate?: string;
+  }): Observable<Blob> {
+    let params = new HttpParams();
+    if (options?.projectIds?.length) params = params.set('project_ids', options.projectIds.join(','));
+    if (options?.startDate) params = params.set('start_date', options.startDate);
+    if (options?.endDate) params = params.set('end_date', options.endDate);
+    return this.http.get(`${this.apiUrl}/exports/costs.xlsx`, {
+      params,
+      responseType: 'blob'
+    }).pipe(catchError(err => throwError(() => err)));
   }
 }
